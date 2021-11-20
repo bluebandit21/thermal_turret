@@ -24,3 +24,8 @@ https://github.com/jiuqiant/mediapipe_python_aarch64
 
 
 https://forums.developer.nvidia.com/t/google-mediapipe-real-time-hand-tracking-on-nano/80281/6
+
+
+
+
+https://github.com/yockgen/mediapipe_jetson_nano

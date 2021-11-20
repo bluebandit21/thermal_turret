@@ -16,3 +16,6 @@ mediapipe 0.8.3.1 download link: https://pypi.org/project/mediapipe/0.8.3.1/#fil
 pip install some-package.whl
 
 
+https://github.com/jiuqiant/mediapipe_python_aarch64
+
+

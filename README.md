@@ -12,5 +12,6 @@ SEN-09570 Infrared Thermometer:
 
 
 mediapipe 0.8.3.1 download link: https://pypi.org/project/mediapipe/0.8.3.1/#files
+pip install some-package.whl
 
 

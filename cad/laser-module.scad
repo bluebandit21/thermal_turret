@@ -62,7 +62,7 @@ laser_box = 12;
 box_thickness = 24; // 6
 
 // Use module like this
-Laser_Module(laser_box, laser_box);
+Laser_Module(box_size, laser_box);
 
 module Laser_Module(box_size, laser_box) {
 //main body

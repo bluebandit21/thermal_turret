@@ -39,6 +39,7 @@ W = Width
 
 */
 use <laser-module.scad>
+use <camera-module.scad>
 
 ////////////////////////////////////////////////////////////////////////////
 // Everything in this secion is inches!!!! DO NOT USE BASE NUMBERS		  //
@@ -82,3 +83,8 @@ translate ([Mount_Box_WM / 4,Mount_Box_LM / 4,Mount_Box_HM])
 translate([Mount_Box_WM / 2 ,Mount_Box_LM / 2 + 12,Mount_Box_HM * 2 - 4 + 25.4])
 rotate([90,90,0])
 	Laser_Module(25.4, 12);
+
+
+translate([0,0,0])
+rotate ([90,0,0])
+	Camera_Module();

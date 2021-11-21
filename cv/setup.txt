@@ -21,3 +21,9 @@ https://www.okdo.com/getting-started/get-started-with-jetson-nano-4gb-and-csi-ca
 
 downbload vsCode:
 curl -L https://github.com/toolboc/vscode/releases/download/1.32.3/code-oss_1.32.3-arm64.deb -o code-oss_1.32.3-arm64.deb
+
+
+
+
+mediapip:
+https://github.com/google/mediapipe.git

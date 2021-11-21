@@ -38,6 +38,7 @@ W = Width
 
 
 */
+use <laser-module.scad>
 
 ////////////////////////////////////////////////////////////////////////////
 // Everything in this secion is inches!!!! DO NOT USE BASE NUMBERS		  //
@@ -74,5 +75,10 @@ Mount_Box_HM = Mount_Box_H * MM_scalar;
 // Mounting Base
 cube($fn = Radius_Fragments, [Mount_Box_WM, Mount_Box_LM, Mount_Box_HM], 0);
 
+//spacer box
+translate ([Mount_Box_WM / 4,Mount_Box_LM / 4,Mount_Box_HM])
+	cube($fn = Radius_Fragments, [Mount_Box_WM / 2, Mount_Box_LM / 2, Mount_Box_HM - 4], 0);
 
-
+translate([Mount_Box_WM / 2 ,Mount_Box_LM / 2 + 12,Mount_Box_HM * 2 - 4 + 25.4])
+rotate([90,90,0])
+	Laser_Module(25.4, 12);

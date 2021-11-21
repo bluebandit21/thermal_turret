@@ -18,3 +18,6 @@ mediapipe-0.8.5_cuda102-cp36-none-linux_aarch64.whl
 
 
 https://www.okdo.com/getting-started/get-started-with-jetson-nano-4gb-and-csi-camera/
+
+downbload vsCode:
+curl -L https://github.com/toolboc/vscode/releases/download/1.32.3/code-oss_1.32.3-arm64.deb -o code-oss_1.32.3-arm64.deb

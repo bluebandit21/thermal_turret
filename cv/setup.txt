@@ -1,1 +1,2 @@
 https://github.com/codeniko/shape_predictor_81_face_landmarks
+https://forums.developer.nvidia.com/t/install-scikit-image/122912/12

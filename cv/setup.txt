@@ -27,3 +27,6 @@ curl -L https://github.com/toolboc/vscode/releases/download/1.32.3/code-oss_1.32
 
 mediapip:
 https://github.com/google/mediapipe.git
+
+
+git clone https://github.com/RvTechiNNovate/face_recog_dlib_file.git

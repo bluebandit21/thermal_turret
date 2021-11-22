@@ -32,6 +32,11 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define LASER_SMBUS_ADDRESS 0xB4
+
+#define LASER_TOBJ1_ADDRESS 0x007
+
+#define COMMAND_READ 0x1
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -40,6 +45,7 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+SMBUS_HandleTypeDef hsmbus1;
 
 /* USER CODE BEGIN PV */
 
@@ -47,6 +53,8 @@
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+static void MX_GPIO_Init(void);
+static void MX_I2C1_SMBUS_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -83,7 +91,10 @@ int main(void)
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
+  MX_GPIO_Init();
+  MX_I2C1_SMBUS_Init();
   /* USER CODE BEGIN 2 */
+
 
   /* USER CODE END 2 */
 
@@ -93,7 +104,15 @@ int main(void)
   {
     /* USER CODE END WHILE */
 
+
     /* USER CODE BEGIN 3 */
+	  //This doesn't work!
+	  /*
+	  uint8_t data[2] = {LASER_TOBJ1_ADDRESS, COMMAND_READ};
+
+	  int ret = HAL_SMBUS_Master_Transmit_IT(&hsmbus1, LASER_SMBUS_ADDRESS, data, sizeof(data), SMBUS_FIRST_AND_LAST_FRAME_NO_PEC);
+	  HAL_Delay(3200);
+	  */
   }
   /* USER CODE END 3 */
 }
@@ -135,6 +154,54 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief I2C1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2C1_SMBUS_Init(void)
+{
+
+  /* USER CODE BEGIN I2C1_Init 0 */
+
+  /* USER CODE END I2C1_Init 0 */
+
+  /* USER CODE BEGIN I2C1_Init 1 */
+
+  /* USER CODE END I2C1_Init 1 */
+  hsmbus1.Instance = I2C1;
+  hsmbus1.Init.ClockSpeed = 100000;
+  hsmbus1.Init.OwnAddress1 = 0;
+  hsmbus1.Init.AddressingMode = SMBUS_ADDRESSINGMODE_7BIT;
+  hsmbus1.Init.DualAddressMode = SMBUS_DUALADDRESS_DISABLE;
+  hsmbus1.Init.OwnAddress2 = 0;
+  hsmbus1.Init.GeneralCallMode = SMBUS_GENERALCALL_DISABLE;
+  hsmbus1.Init.NoStretchMode = SMBUS_NOSTRETCH_DISABLE;
+  hsmbus1.Init.PacketErrorCheckMode = SMBUS_PEC_DISABLE;
+  hsmbus1.Init.PeripheralMode = SMBUS_PERIPHERAL_MODE_SMBUS_SLAVE;
+  if (HAL_SMBUS_Init(&hsmbus1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2C1_Init 2 */
+
+  /* USER CODE END I2C1_Init 2 */
+
+}
+
+/**
+  * @brief GPIO Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_GPIO_Init(void)
+{
+
+  /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOB_CLK_ENABLE();
+
 }
 
 /* USER CODE BEGIN 4 */

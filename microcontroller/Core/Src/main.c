@@ -37,6 +37,14 @@
 #define LASER_TOBJ1_ADDRESS 0x007
 
 #define COMMAND_READ 0x1
+
+
+#define SERVO_PULSE_WIDTH_TICKS 35471
+#define SERVO_NEUTRAL_TICKS  SERVO_PULSE_WIDTH_TICKS / 10
+//Range from neutral to +max or -max in ticks
+#define SERVO_RANGE_TICKS 1000
+#define SERVO_MAX_ANGLE 45 //TODO: Is this right?
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -47,6 +55,8 @@
 /* Private variables ---------------------------------------------------------*/
 SMBUS_HandleTypeDef hsmbus1;
 
+TIM_HandleTypeDef htim1;
+
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -55,12 +65,32 @@ SMBUS_HandleTypeDef hsmbus1;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_I2C1_SMBUS_Init(void);
+static void MX_TIM1_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+
+/* void target_gimbal_angles(short yaw, short pitch)
+ *  Moves gimbal to specified position of yaw and pitch.
+ *  Both provided angles are from -X degrees to X degrees //TODO: Add angles here
+ */
+void set_gimbal_angles(int yaw, int pitch){
+	int yaw_pulse_width = SERVO_NEUTRAL_TICKS + (yaw * SERVO_RANGE_TICKS) / SERVO_MAX_ANGLE;
+	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, yaw_pulse_width);
+
+	int pitch_pulse_width = SERVO_NEUTRAL_TICKS + (pitch * SERVO_RANGE_TICKS) / SERVO_MAX_ANGLE;
+	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, pitch_pulse_width);
+
+}
+
+
+
+
+
 
 /* USER CODE END 0 */
 
@@ -88,14 +118,20 @@ int main(void)
 
   /* USER CODE BEGIN SysInit */
 
+
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_I2C1_SMBUS_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
 
-
+  //Start our servomotor pwm channels //TODO: MOVE ME!
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+  HAL_TIM_IC_Start_IT(&htim1, TIM_CHANNEL_1);
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
+   HAL_TIM_IC_Start_IT(&htim1, TIM_CHANNEL_2);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -104,15 +140,20 @@ int main(void)
   {
     /* USER CODE END WHILE */
 
-
     /* USER CODE BEGIN 3 */
+
+
+
+	  set_gimbal_angles(-45,-45);
+
 	  //This doesn't work!
 	  /*
 	  uint8_t data[2] = {LASER_TOBJ1_ADDRESS, COMMAND_READ};
 
 	  int ret = HAL_SMBUS_Master_Transmit_IT(&hsmbus1, LASER_SMBUS_ADDRESS, data, sizeof(data), SMBUS_FIRST_AND_LAST_FRAME_NO_PEC);
-	  HAL_Delay(3200);
+
 	  */
+	  HAL_Delay(3200);
   }
   /* USER CODE END 3 */
 }
@@ -192,6 +233,85 @@ static void MX_I2C1_SMBUS_Init(void)
 }
 
 /**
+  * @brief TIM1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM1_Init(void)
+{
+
+  /* USER CODE BEGIN TIM1_Init 0 */
+
+  /* USER CODE END TIM1_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+  TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig = {0};
+
+  /* USER CODE BEGIN TIM1_Init 1 */
+
+  /* USER CODE END TIM1_Init 1 */
+  htim1.Instance = TIM1;
+  htim1.Init.Prescaler = 8;
+  htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim1.Init.Period = 35471;
+  htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim1.Init.RepetitionCounter = 0;
+  htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+  if (HAL_TIM_Base_Init(&htim1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim1, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_Init(&htim1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
+  sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
+  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sBreakDeadTimeConfig.OffStateRunMode = TIM_OSSR_DISABLE;
+  sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_DISABLE;
+  sBreakDeadTimeConfig.LockLevel = TIM_LOCKLEVEL_OFF;
+  sBreakDeadTimeConfig.DeadTime = 0;
+  sBreakDeadTimeConfig.BreakState = TIM_BREAK_DISABLE;
+  sBreakDeadTimeConfig.BreakPolarity = TIM_BREAKPOLARITY_HIGH;
+  sBreakDeadTimeConfig.AutomaticOutput = TIM_AUTOMATICOUTPUT_DISABLE;
+  if (HAL_TIMEx_ConfigBreakDeadTime(&htim1, &sBreakDeadTimeConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM1_Init 2 */
+
+  /* USER CODE END TIM1_Init 2 */
+  HAL_TIM_MspPostInit(&htim1);
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -200,6 +320,7 @@ static void MX_GPIO_Init(void)
 {
 
   /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
 }

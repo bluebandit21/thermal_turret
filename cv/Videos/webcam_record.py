@@ -21,7 +21,7 @@ fourcc = cv2.VideoWriter_fourcc(*'XVID')
 
 out = cv2.VideoWriter('output.avi',fourcc, 20.0, (1280, 720))
 
-predictor_path = 'shape_predictor_81_face_landmarks.dat'
+predictor_path = '/home/abdulqader/Documents/eecs373/thermal_turret/cv/Videos/shape_predictor_81_face_landmarks.dat'
 
 detector = dlib.get_frontal_face_detector()
 predictor = dlib.shape_predictor(predictor_path)

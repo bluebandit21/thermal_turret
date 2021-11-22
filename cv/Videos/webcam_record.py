@@ -9,10 +9,10 @@ import time
 import RPi.GPIO as GPIO
 
 GPIO.setmode(GPIO.BOARD)
-GPIO.setup(11,GPIO.OUT)
-GPIO.setup(12,GPIO.OUT)
 GPIO.setup(21,GPIO.OUT)
 GPIO.setup(22,GPIO.OUT)
+GPIO.setup(23,GPIO.OUT)
+GPIO.setup(24,GPIO.OUT)
 
 
 
@@ -61,70 +61,70 @@ while(cap.isOpened()):
 
 
 
-    #4 pins for direction, 11 right, 12 left, 21 up, 22 down   
-    #Right-Up
-    if (my_dict["75"][0] > center[0] and my_dict["69"][1] > center[1]):
-        GPIO.output(12,False)
-        GPIO.output(11,True)
+    #4 pins for direction, 21 right, 22 left, 23 up, 24 down   
+    #Left-Down
+    if (my_dict["19"][0] > center[0] and my_dict["19"][1] > center[1]):
         GPIO.output(22,False)
         GPIO.output(21,True)
+        GPIO.output(24,False)
+        GPIO.output(23,True)
         print("RIGHT-UP")
-    #Right-Down
-    elif (my_dict["75"][0] > center[0] and my_dict["19"][1] < center[1]):
-        GPIO.output(12,False)
-        GPIO.output(11,True)
-        GPIO.output(21,False)
-        GPIO.output(22,True)
+    #Left-Up
+    elif (my_dict["19"][0] > center[0] and my_dict["19"][1] < center[1]):
+        GPIO.output(22,False)
+        GPIO.output(21,True)
+        GPIO.output(23,False)
+        GPIO.output(24,True)
         print("RIGHT-DOWN")
 
-    #Left-up
-    elif (my_dict["74"][0] < center[0] and my_dict["69"][1] > center[1]):
-        GPIO.output(11,False)
-        GPIO.output(12,True)
-        GPIO.output(22,False)
-        GPIO.output(21,True)
-        print("LEFT-UP")
-    #Left-Down
-    elif (my_dict["74"][0] < center[0] and my_dict["19"][1] < center[1]):
-        GPIO.output(11,False)
-        GPIO.output(12,True)
+    #Right-Down
+    elif (my_dict["19"][0] < center[0] and my_dict["19"][1] > center[1]):
         GPIO.output(21,False)
         GPIO.output(22,True)
+        GPIO.output(23,False)
+        GPIO.output(24,True)
+        print("LEFT-UP")
+    #Right-Up
+    elif (my_dict["19"][0] < center[0] and my_dict["19"][1] < center[1]):
+        GPIO.output(21,False)
+        GPIO.output(22,True)
+        GPIO.output(23,False)
+        GPIO.output(24,True)
         print("LEFT-DOWN")
 
-    #Right
-    elif (my_dict["75"][0] > center[0]):
-        GPIO.output(12,False)
-        GPIO.output(21,False)
-        GPIO.output(22,False)
-        GPIO.output(11,True)
-        print("RIGHT")
     #Left
-    elif (my_dict["74"][0] < center[0]):
-        GPIO.output(11,False)
-        GPIO.output(21,False)
+    elif (my_dict["19"][0] > center[0]):
         GPIO.output(22,False)
-        GPIO.output(12,True)
-        print("LEFT")
-    #Up
-    elif (my_dict["69"][1] > center[1]):
-        GPIO.output(11,False)
-        GPIO.output(12,False)
-        GPIO.output(22,False)
+        GPIO.output(23,False)
+        GPIO.output(24,False)
         GPIO.output(21,True)
-        print("UP")
+        print("Left")
+    #Right
+    elif (my_dict["19"][0] < center[0]):
+        GPIO.output(21,False)
+        GPIO.output(23,False)
+        GPIO.output(24,False)
+        GPIO.output(22,True)
+        print("Right")
     #Down
-    elif (my_dict["19"][1] < center[1]):
-        GPIO.output(11,False)
-        GPIO.output(12,False)
+    elif (my_dict["19"][1] > center[1]):
         GPIO.output(21,False)
-        GPIO.output(22,True)
-        print("DOWN")
+        GPIO.output(22,False)
+        GPIO.output(24,False)
+        GPIO.output(23,True)
+        print("Down")
+    #Up
+    elif (my_dict["19"][1] < center[1]):
+        GPIO.output(21,False)
+        GPIO.output(22,False)
+        GPIO.output(23,False)
+        GPIO.output(24,True)
+        print("Up")
     else:
-        GPIO.output(11,True)
-        GPIO.output(12,True)
         GPIO.output(21,True)
         GPIO.output(22,True)
+        GPIO.output(23,True)
+        GPIO.output(24,True)
 
 
     out.write(frame)

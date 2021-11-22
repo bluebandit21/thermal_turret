@@ -11,6 +11,8 @@ SEN-09570 Infrared Thermometer:
 [Datasheet](https://www.sparkfun.com/datasheets/Sensors/Temperature/SEN-09570-datasheet-3901090614M005.pdf)
 
 
+#### **Misc CV stuff:**
+
 mediapipe 0.8.3.1 download link: https://pypi.org/project/mediapipe/0.8.3.1/#files
 
 pip install some-package.whl
@@ -29,3 +31,7 @@ https://forums.developer.nvidia.com/t/google-mediapipe-real-time-hand-tracking-o
 
 
 https://github.com/yockgen/mediapipe_jetson_nano
+
+#### HEL_BUSY Fix
+https://stackoverflow.com/questions/330793/how-to-initialize-a-struct-in-accordance-with-c-programming-language-standards
+

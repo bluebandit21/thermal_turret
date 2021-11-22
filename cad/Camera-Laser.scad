@@ -72,6 +72,9 @@ Mount_Box_LM = Mount_Box_L * MM_scalar;
 Mount_Box_WM = Mount_Box_W * MM_scalar;
 Mount_Box_HM = Mount_Box_H * MM_scalar;
 
+Camera_Board_LM = Camera_Board_L * MM_scalar;
+Camera_Board_WM = Camera_Board_W * MM_scalar;
+
 
 // Mounting Base
 cube($fn = Radius_Fragments, [Mount_Box_WM, Mount_Box_LM, Mount_Box_HM], 0);
@@ -80,11 +83,11 @@ cube($fn = Radius_Fragments, [Mount_Box_WM, Mount_Box_LM, Mount_Box_HM], 0);
 translate ([Mount_Box_WM / 4,Mount_Box_LM / 4,Mount_Box_HM])
 	cube($fn = Radius_Fragments, [Mount_Box_WM / 2, Mount_Box_LM / 2, Mount_Box_HM - 4], 0);
 
-translate([Mount_Box_WM / 2 ,Mount_Box_LM / 2 + 12,Mount_Box_HM * 2 - 4 + 25.4])
+translate([Mount_Box_WM / 2 + (Camera_Board_LM + 12) /4,Mount_Box_LM / 2 + 12,Mount_Box_HM * 2 - 4 + Camera_Board_LM + 10])
 rotate([90,90,0])
-	Laser_Module(25.4, 12);
+	Laser_Module(Camera_Board_LM + 10, 12);
 
 
-translate([0,0,0])
+translate([Mount_Box_WM / 2 - (Camera_Board_WM + 6) + (Camera_Board_LM + 12) / 4,Mount_Box_LM / 2 + 12,Mount_Box_HM * 2])
 rotate ([90,0,0])
 	Camera_Module();

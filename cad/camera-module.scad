@@ -39,8 +39,8 @@ W = Width
 
 */
 
-Camera_Board_W = 0.982; // inches -- top to bottom
-Camera_Board_L = 0.950; // inches <-- has 0.630 ribbon coming out of bottom center -- left to right
+Camera_Board_W = 0.950; // inches -- top to bottom
+Camera_Board_L = 0.982; // inches <-- has 0.630 ribbon coming out of bottom center -- left to right
 
 Camera_D = 0.550; // inches
 
@@ -70,13 +70,14 @@ module Camera_Module() {
 //main body
 	union() {
 		difference() {
-			cube($fn = Radius_Fragments, [Camera_Board_LM+6, Camera_Board_WM+6, box_thickness],0);
+			translate([0,-4,0])
+				cube($fn = Radius_Fragments, [Camera_Board_LM+6, Camera_Board_WM+10, box_thickness],0);
 			// Camera Board
 			translate([2.8,2.8,box_thickness-Camera_DM -1])
 				cube($fn = Radius_Fragments, [Camera_Board_LM+spacer, Camera_Board_WM+spacer, box_thickness - Camera_DM +support_depth_M], 0);
 			// Ribbon Cable
-			translate([(Camera_Board_LM+6 - Ribbon_M) / 2,-0.1,box_thickness - Camera_DM + 3])
-				cube($fn = Radius_Fragments, [Ribbon_M+spacer, Camera_Board_WM, box_thickness - Camera_DM + 1], 0);
+			translate([(Camera_Board_LM+6 - Ribbon_M) / 2,-3.1,-0.1])
+				cube($fn = Radius_Fragments, [Ribbon_M+spacer, 6, box_thickness - Camera_DM + 6], 0);
 		};
 		translate([5,Camera_Board_WM + 1,box_thickness - Camera_DM - 2])
 		rotate([0,0,90])

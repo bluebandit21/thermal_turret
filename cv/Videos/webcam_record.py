@@ -13,7 +13,7 @@ GPIO.setup(21,GPIO.OUT)
 GPIO.setup(22,GPIO.OUT)
 GPIO.setup(23,GPIO.OUT)
 GPIO.setup(24,GPIO.OUT)
-
+GPIO.setup(26,GPIO.OUT)
 
 
 cap = cv2.VideoCapture(-1)
@@ -68,7 +68,13 @@ while(cap.isOpened()):
     #24 corresponds to lower-right
     #69 corresponds to upper-left
     #73 corresponds to upper-right
-
+    
+    if(len(dets)!=0):
+        #Someone is in the frame
+        GPIO.output(26, True)
+    else:
+        GPIO.output(26, False)
+        print("No one is in the frame")
     if(my_dict["19"][0] > center[0]):
         #We're to the left of the left
         GPIO.output(21, True)
@@ -79,6 +85,7 @@ while(cap.isOpened()):
         #We're to the right of the right
         GPIO.output(22, True)
         print("Trying to move LEFT")
+
     else:
         GPIO.output(22, False)
     if(my_dict["24"][1] < center[1]):

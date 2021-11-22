@@ -29,3 +29,9 @@ https://forums.developer.nvidia.com/t/google-mediapipe-real-time-hand-tracking-o
 
 
 https://github.com/yockgen/mediapipe_jetson_nano
+
+
+
+### **Servomotor stuff**
+20 ms = 35,471 ticks
+=>  

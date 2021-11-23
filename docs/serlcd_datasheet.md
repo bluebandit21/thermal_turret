@@ -35,7 +35,7 @@ faster if needed.
 
 |  ASCII |   DEC   |                                          HEX                                                |
 | :----: | :------ | :------------------------------------------------------------------------------------------ |
-| '\|'    |  124    | 0x7C - Put into setting mode                                                                |
+|  \|    |  124    | 0x7C - Put into setting mode                                                                |
 | Ctrl+c |    3    | 0x03 - Change width to 20                                                                   |
 | Ctrl+d |    4    | 0x04 - Change width to 16                                                                   |
 | Ctrl+e |    5    | 0x05 - Change lines to 4                                                                    |
@@ -60,13 +60,13 @@ faster if needed.
 | Ctrl+x |   24    | 0x18 - Change the contrast. Follow Ctrl+x with number 0 to 255. 120 is default.             |
 | Ctrl+y |   25    | 0x19 - Change the TWI address. Follow Ctrl+x with number 0 to 255. 114 (0x72) is default.   |
 | Ctrl+z |   26    | 0x1A - Enable/disable ignore RX pin on startup (ignore emergency reset)                     |
-| '+'    |   43    | 0x2B - Set RGB backlight with three following bytes, 0-255                                  |
-| ','    |   44    | 0x2C - Display current firmware version                                                     |
-| '-'    |   45    | 0x2D - Clear display. Move cursor to home position.                                         |
-| '.'    |   46    | 0x2E - Enable system messages (ie, display 'Contrast: 5' when changed)                      |
-| '/'    |   47    | 0x2F - Disable system messages (ie, don't display 'Contrast: 5' when changed)               |
-| '0'    |   48    | 0x30 - Enable splash screen                                                                 |
-| '1'    |   49    | 0x31 - Disable splash screen                                                                |
+|  +     |   43    | 0x2B - Set RGB backlight with three following bytes, 0-255                                  |
+|  ,     |   44    | 0x2C - Display current firmware version                                                     |
+|  -     |   45    | 0x2D - Clear display. Move cursor to home position.                                         |
+|  .     |   46    | 0x2E - Enable system messages (ie, display 'Contrast: 5' when changed)                      |
+|  /     |   47    | 0x2F - Disable system messages (ie, don't display 'Contrast: 5' when changed)               |
+|  0     |   48    | 0x30 - Enable splash screen                                                                 |
+|  1     |   49    | 0x31 - Disable splash screen                                                                |
 |        | 128-157 | 0x80-0x9D - Set the primary backlight brightness. 128 = Off, 157 = 100%.                    |
 |        | 158-187 | 0x9E-0xBB - Set the green backlight brightness. 158 = Off, 187 = 100%.                      |
 |        | 188-217 | 0xBC-0xD9 - Set the blue backlight brightness. 188 = Off, 217 = 100%.                       |

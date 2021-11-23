@@ -72,3 +72,210 @@ faster if needed.
 |        | 188-217 | 0xBC-0xD9 - Set the blue backlight brightness. 188 = Off, 217 = 100%.                       |
 
 For example, to change the baud rate to 115200 send 124 followed by 18.
+
+## All Commands
+
+```cpp
+#define DISPLAY_ADDRESS1 0x72 //This is the default address of the OpenLCD
+#define MAX_ROWS 4
+#define MAX_COLUMNS 20
+
+//OpenLCD command characters
+#define SPECIAL_COMMAND 254  //Magic number for sending a special command
+#define SETTING_COMMAND 0x7C //124, |, the pipe character: The command to change settings: baud, lines, width, backlight, splash, etc
+
+//OpenLCD commands
+#define CLEAR_COMMAND 0x2D					//45, -, the dash character: command to clear and home the display
+#define CONTRAST_COMMAND 0x18				//Command to change the contrast setting
+#define ADDRESS_COMMAND 0x19				//Command to change the i2c address
+#define SET_RGB_COMMAND 0x2B				//43, +, the plus character: command to set backlight RGB value
+#define ENABLE_SYSTEM_MESSAGE_DISPLAY 0x2E  //46, ., command to enable system messages being displayed
+#define DISABLE_SYSTEM_MESSAGE_DISPLAY 0x2F //47, /, command to disable system messages being displayed
+#define ENABLE_SPLASH_DISPLAY 0x30			//48, 0, command to enable splash screen at power on
+#define DISABLE_SPLASH_DISPLAY 0x31			//49, 1, command to disable splash screen at power on
+#define SAVE_CURRENT_DISPLAY_AS_SPLASH 0x0A //10, Ctrl+j, command to save current text on display as splash
+
+// special commands
+#define LCD_RETURNHOME 0x02
+#define LCD_ENTRYMODESET 0x04
+#define LCD_DISPLAYCONTROL 0x08
+#define LCD_CURSORSHIFT 0x10
+#define LCD_SETDDRAMADDR 0x80
+
+// flags for display entry mode
+#define LCD_ENTRYRIGHT 0x00
+#define LCD_ENTRYLEFT 0x02
+#define LCD_ENTRYSHIFTINCREMENT 0x01
+#define LCD_ENTRYSHIFTDECREMENT 0x00
+
+// flags for display on/off control
+#define LCD_DISPLAYON 0x04
+#define LCD_DISPLAYOFF 0x00
+#define LCD_CURSORON 0x02
+#define LCD_CURSOROFF 0x00
+#define LCD_BLINKON 0x01
+#define LCD_BLINKOFF 0x00
+
+// flags for display/cursor shift
+#define LCD_DISPLAYMOVE 0x08
+#define LCD_CURSORMOVE 0x00
+#define LCD_MOVERIGHT 0x04
+#define LCD_MOVELEFT 0x00
+
+```
+
+
+## Writing to the Display
+
+```cpp
+/*
+ * Write a byte to the display.
+ * Required for Print.
+ */
+size_t SerLCD::write(uint8_t b)
+{
+  beginTransmission(); // transmit to device
+  transmit(b);
+  endTransmission(); //Stop transmission
+  delay(10);         // wait a bit
+  return 1;
+} // write
+
+/*
+ * Write a character buffer to the display.
+ * Required for Print.
+ */
+size_t SerLCD::write(const uint8_t *buffer, size_t size)
+{
+  size_t n = 0;
+  beginTransmission(); // transmit to device
+  while (size--)
+  {
+    transmit(*buffer++);
+    n++;
+  }                  //while
+  endTransmission(); //Stop transmission
+  delay(10);         //
+  return n;
+} //write
+
+/*
+ * Write a string to the display.
+ * Required for Print.
+ */
+size_t SerLCD::write(const char *str)
+{
+  if (str == NULL)
+    return 0;
+  return write((const uint8_t *)str, strlen(str));
+}
+```
+
+
+## Example Functions
+
+```cpp
+#define SETTING_COMMAND    0x7C //124, |, the pipe character: The command to change settings: baud, lines, width, backlight, splash, etc
+#define SET_RGB_COMMAND    0x2B				//43, +, the plus character: command to set backlight RGB value
+#define SPECIAL_COMMAND    254  //Magic number for sending a special command
+#define LCD_DISPLAYCONTROL 0x08
+#define LCD_ENTRYMODESET   0x04
+#define CLEAR_COMMAND      0x2D					//45, -, the dash character: command to clear and home the display
+
+/*
+ * Initialize the display
+ *
+ */
+void SerLCD::init()
+{
+  beginTransmission();
+  transmit(SPECIAL_COMMAND);                      //Send special command character
+  transmit(LCD_DISPLAYCONTROL | _displayControl); //Send the display command
+  transmit(SPECIAL_COMMAND);                      //Send special command character
+  transmit(LCD_ENTRYMODESET | _displayMode);      //Send the entry mode command
+  transmit(SETTING_COMMAND);                      //Put LCD into setting mode
+  transmit(CLEAR_COMMAND);                        //Send clear display command
+  endTransmission();                              //Stop transmission
+  delay(50);                                      //let things settle a bit
+} //init
+
+
+// New backlight function
+void SerLCD::setFastBacklight(unsigned long rgb)
+{
+  // convert from hex triplet to byte values
+  byte r = (rgb >> 16) & 0x0000FF;
+  byte g = (rgb >> 8) & 0x0000FF;
+  byte b = rgb & 0x0000FF;
+
+  //send commands to the display to set backlights
+  beginTransmission();       // transmit to device
+  transmit(SETTING_COMMAND); //Send special command character
+  transmit(SET_RGB_COMMAND); //Send the set RGB character '+' or plus
+  transmit(r);               //Send the red value
+  transmit(g);               //Send the green value
+  transmit(b);               //Send the blue value
+  endTransmission();         //Stop transmission
+  delay(10);
+} // setFastBacklight
+
+
+
+
+
+
+/*
+ *  Move the cursor multiple characters to the left.
+ *
+ *  count byte - number of characters to move
+ */
+void SerLCD::moveCursorLeft(byte count)
+{
+
+  beginTransmission(); // transmit to device
+
+  for (int i = 0; i < count; i++)
+  {
+    transmit(SPECIAL_COMMAND); //Send special command character
+    transmit(0x10);         //Send command code
+  }                            // for
+  endTransmission();           //Stop transmission
+
+  delay(50); //Wait a bit longer for special display commands
+} // moveCursorLeft
+
+
+/*
+ *  Move the cursor one character to the right.
+ */
+void SerLCD::moveCursorRight()
+{
+  beginTransmission(); // transmit to device
+
+  for (int i = 0; i < count; i++)
+  {
+    transmit(SPECIAL_COMMAND); //Send special command character
+    transmit(0x14);         //Send command code
+  }                            // for
+  endTransmission();           //Stop transmission
+
+  delay(50); //Wait a bit longer for special display commands
+
+
+/*
+ * Send the clear command to the display.  This clears the
+ * display and forces the cursor to return to the beginning
+ * of the display.
+ */
+void SerLCD::clear()
+{
+  beginTransmission();       // transmit to device
+  transmit(SETTING_COMMAND); //Put LCD into setting mode
+  transmit(CLEAR_COMMAND);         //Send the command code
+  endTransmission();         //Stop transmission
+
+  delay(10); //Hang out for a bit
+  delay(10); // a little extra delay after clear
+}
+
+```

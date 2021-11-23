@@ -35,7 +35,7 @@ faster if needed.
 
 |  ASCII |   DEC   |                                          HEX                                                |
 | :----: | :------ | :------------------------------------------------------------------------------------------ |
-| '|'    |  124    | 0x7C - Put into setting mode                                                                |
+| '\|'    |  124    | 0x7C - Put into setting mode                                                                |
 | Ctrl+c |    3    | 0x03 - Change width to 20                                                                   |
 | Ctrl+d |    4    | 0x04 - Change width to 16                                                                   |
 | Ctrl+e |    5    | 0x05 - Change lines to 4                                                                    |

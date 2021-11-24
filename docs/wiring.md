@@ -6,6 +6,6 @@ The orange wire of the yaw servo needs to be connected to pin A8 (labelled "D7" 
 
 
 ### **Laser:**
-Red wire needs to be connected to +5 V, black to ground, with a 0.1 uF decoupling capacitor between the two  
+Red wire needs to be connected to +3.3 V (not 5V!!!!!!!!!!!!!), black to ground, with a 0.1 uF decoupling capacitor between the two  
 Green (SCL) needs to be connected to pin B6 (ninth pin down on the middle row of pins on the right (oriented with ST logo on bottom))  
 Orange (SDA) needs to be connected to pin B7 (ninth pin from the bottom on the left row of pins on the left (oriented with ST logo on bottom))  

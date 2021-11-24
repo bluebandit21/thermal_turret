@@ -81,6 +81,11 @@ static void MX_TIM1_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+
+//------------------------LCD DRIVERS---------------------------------------
+
+
 #define DISPLAY_ADDRESS1 0x72 //This is the default address of the OpenLCD
 #define MAX_ROWS 4
 #define MAX_COLUMNS 20
@@ -148,6 +153,8 @@ uint8_t _displayMode = LCD_ENTRYLEFT | LCD_ENTRYSHIFTDECREMENT;
  *
  *
 */
+
+/*//TODO: Uncomment this block; was commented because it caused compile errors
 void setup_LCD(){
 	uint8_t buf[12];
 	buf[0] = SPECIAL_COMMAND;
@@ -156,17 +163,37 @@ void setup_LCD(){
 	buf[6] = LCD_ENTRYMODESET | _displayMode;
 	buf[8] = SETTING_COMMAND;
 	buf[10] = CLEAR_COMMAND;
-	ret = HAL_I2C_Master_Transmit(&hi2c1, ACC_W_ADDR, buf, 12, HAL_MAX_DELAY);
+	ret = HAL_I2C_Master_Transmit(&hi2c1, ACC_W_ADDR, buf, 12, HAL_MAX_DELAY); //TODO: Uncomment me
 
 	if (ret != HAL_OK){
 		  strcpy((char*)buf, "No Write\r\n");
-		  HAL_UART_Transmit(&hlpuart1, buf, strlen((char*)buf), HAL_MAX_DELAY);
+		 HAL_UART_Transmit(&hlpuart1, buf, strlen((char*)buf), HAL_MAX_DELAY); //TODO: Uncomment me
 	}
 
 }
+*/
 
 
 //------------------------GIMBAL DRIVERS---------------------------------------
+
+void initialize_gimbal();
+int set_gimbal_angles(int yaw, int pitch);
+
+
+/* void initialize_gimbal()
+ *  Initializes hardware timers for gimbals and sets init position to (0,0)
+ */
+void initialize_gimbal(){
+	//Start hardware timers
+	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+	HAL_TIM_IC_Start_IT(&htim1, TIM_CHANNEL_1);
+	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
+	HAL_TIM_IC_Start_IT(&htim1, TIM_CHANNEL_2);
+
+	//Move to starting position
+	set_gimbal_angles(0,0);
+}
+
 /* void target_gimbal_angles(short yaw, short pitch)
  *  Moves gimbal to specified position of yaw and pitch.
  *  Yaw can range from -95 degrees to 95 degrees
@@ -175,7 +202,7 @@ void setup_LCD(){
 int set_gimbal_angles(int yaw, int pitch){
 	if(abs(yaw) > SERVO_YAW_MAX_ANGLE \
 			|| (pitch > SERVO_PITCH_MAX_SAFE_ANGLE_MIN) || (pitch < SERVO_PITCH_MAX_SAFE_ANGLE_MAX)){
-		//Refuse to do this move; it'd cause bad things to occur
+		//Refuse to do this move; it'd cause bad things to occur physically
 		//TODO: Add logging here
 		return -1;
 	}
@@ -244,11 +271,9 @@ int main(void)
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
 
-  //Start our servomotor pwm channels //TODO: MOVE ME!
-  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
-  HAL_TIM_IC_Start_IT(&htim1, TIM_CHANNEL_1);
-  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
-   HAL_TIM_IC_Start_IT(&htim1, TIM_CHANNEL_2);
+  initialize_gimbal();
+
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -259,7 +284,7 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
-	  set_gimbal_angles(0, 0);
+	  set_gimbal_angles(45, 0);
 
 
 	  //This doesn't work!

@@ -22,6 +22,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "math.h"
 
 /* USER CODE END Includes */
 
@@ -38,12 +39,20 @@
 
 #define COMMAND_READ 0x1
 
-
+//------------------------GIMBAL CONSTANTS-------------------------------------
+//Determined experimentally (the datasheet lies)
 #define SERVO_PULSE_WIDTH_TICKS 35471
-#define SERVO_NEUTRAL_TICKS  SERVO_PULSE_WIDTH_TICKS / 10
+#define SERVO_YAW_NEUTRAL_TICKS  2700
 //Range from neutral to +max or -max in ticks
-#define SERVO_RANGE_TICKS 1000
-#define SERVO_MAX_ANGLE 45 //TODO: Is this right?
+#define SERVO_YAW_RANGE_TICKS 1700 //Determined experimentally
+#define SERVO_YAW_MAX_ANGLE 95 //Determined experimentally
+
+#define SERVO_PITCH_NEUTRAL_TICKS  2600 //TODO: Measure better? These still feel slightly off
+//Range from neutral to +max or -max in ticks
+#define SERVO_PITCH_RANGE_TICKS 1700 //TODO: Measure
+#define SERVO_PITCH_MAX_ANGLE 95 //TODO: Measure
+#define SERVO_PITCH_MAX_SAFE_ANGLE_MIN 40
+#define SERVO_PITCH_MAX_SAFE_ANGLE_MAX -75
 
 /* USER CODE END PD */
 
@@ -156,16 +165,26 @@ void setup_LCD(){
 
 }
 
+
+//------------------------GIMBAL DRIVERS---------------------------------------
 /* void target_gimbal_angles(short yaw, short pitch)
  *  Moves gimbal to specified position of yaw and pitch.
- *  Both provided angles are from -X degrees to X degrees //TODO: Add angles here
+ *  Yaw can range from -95 degrees to 95 degrees
+ *  Pitch can range from //TODO: Measure me
  */
-void set_gimbal_angles(int yaw, int pitch){
-	int yaw_pulse_width = SERVO_NEUTRAL_TICKS + (yaw * SERVO_RANGE_TICKS) / SERVO_MAX_ANGLE;
+int set_gimbal_angles(int yaw, int pitch){
+	if(abs(yaw) > SERVO_YAW_MAX_ANGLE \
+			|| (pitch > SERVO_PITCH_MAX_SAFE_ANGLE_MIN) || (pitch < SERVO_PITCH_MAX_SAFE_ANGLE_MAX)){
+		//Refuse to do this move; it'd cause bad things to occur
+		//TODO: Add logging here
+		return -1;
+	}
+	int yaw_pulse_width = SERVO_YAW_NEUTRAL_TICKS + (yaw * SERVO_YAW_RANGE_TICKS) / SERVO_YAW_MAX_ANGLE;
 	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, yaw_pulse_width);
 
-	int pitch_pulse_width = SERVO_NEUTRAL_TICKS + (pitch * SERVO_RANGE_TICKS) / SERVO_MAX_ANGLE;
+	int pitch_pulse_width = SERVO_PITCH_NEUTRAL_TICKS + (pitch * SERVO_PITCH_RANGE_TICKS) / SERVO_PITCH_MAX_ANGLE;
 	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, pitch_pulse_width);
+	return 0;
 
 }
 
@@ -240,9 +259,8 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
+	  set_gimbal_angles(0, 0);
 
-
-	  set_gimbal_angles(-45,-45);
 
 	  //This doesn't work!
 	  /*

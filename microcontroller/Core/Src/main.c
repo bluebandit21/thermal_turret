@@ -23,6 +23,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "math.h"
+#include "OpenLCD.h"
 
 /* USER CODE END Includes */
 
@@ -62,7 +63,7 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-SMBUS_HandleTypeDef hsmbus1;
+I2C_HandleTypeDef hi2c1;
 
 TIM_HandleTypeDef htim1;
 
@@ -73,7 +74,7 @@ TIM_HandleTypeDef htim1;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_I2C1_SMBUS_Init(void);
+static void MX_I2C1_Init(void);
 static void MX_TIM1_Init(void);
 /* USER CODE BEGIN PFP */
 
@@ -81,98 +82,6 @@ static void MX_TIM1_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
-
-//------------------------LCD DRIVERS---------------------------------------
-
-
-#define DISPLAY_ADDRESS1 0x72 //This is the default address of the OpenLCD
-#define MAX_ROWS 4
-#define MAX_COLUMNS 20
-
-//OpenLCD command characters
-#define SPECIAL_COMMAND 254  //Magic number for sending a special command
-#define SETTING_COMMAND 0x7C //124, |, the pipe character: The command to change settings: baud, lines, width, backlight, splash, etc
-
-//OpenLCD commands
-#define CLEAR_COMMAND 0x2D					//45, -, the dash character: command to clear and home the display
-#define CONTRAST_COMMAND 0x18				//Command to change the contrast setting
-#define ADDRESS_COMMAND 0x19				//Command to change the i2c address
-#define SET_RGB_COMMAND 0x2B				//43, +, the plus character: command to set backlight RGB value
-#define ENABLE_SYSTEM_MESSAGE_DISPLAY 0x2E  //46, ., command to enable system messages being displayed
-#define DISABLE_SYSTEM_MESSAGE_DISPLAY 0x2F //47, /, command to disable system messages being displayed
-#define ENABLE_SPLASH_DISPLAY 0x30			//48, 0, command to enable splash screen at power on
-#define DISABLE_SPLASH_DISPLAY 0x31			//49, 1, command to disable splash screen at power on
-#define SAVE_CURRENT_DISPLAY_AS_SPLASH 0x0A //10, Ctrl+j, command to save current text on display as splash
-
-// special commands
-#define LCD_RETURNHOME 0x02
-#define LCD_ENTRYMODESET 0x04
-#define LCD_DISPLAYCONTROL 0x08
-#define LCD_CURSORSHIFT 0x10
-#define LCD_SETDDRAMADDR 0x80
-
-// flags for display entry mode
-#define LCD_ENTRYRIGHT 0x00
-#define LCD_ENTRYLEFT 0x02
-#define LCD_ENTRYSHIFTINCREMENT 0x01
-#define LCD_ENTRYSHIFTDECREMENT 0x00
-
-// flags for display on/off control
-#define LCD_DISPLAYON 0x04
-#define LCD_DISPLAYOFF 0x00
-#define LCD_CURSORON 0x02
-#define LCD_CURSOROFF 0x00
-#define LCD_BLINKON 0x01
-#define LCD_BLINKOFF 0x00
-
-// flags for display/cursor shift
-#define LCD_DISPLAYMOVE 0x08
-#define LCD_CURSORMOVE 0x00
-#define LCD_MOVERIGHT 0x04
-#define LCD_MOVELEFT 0x00
-
-
-uint8_t _i2cAddr = DISPLAY_ADDRESS1;
-uint8_t _displayControl = LCD_DISPLAYON | LCD_CURSOROFF | LCD_BLINKOFF;
-uint8_t _displayMode = LCD_ENTRYLEFT | LCD_ENTRYSHIFTDECREMENT;
-
-
-/* beginTransmission();
-  transmit(SPECIAL_COMMAND);                      //Send special command character
-  transmit(LCD_DISPLAYCONTROL | _displayControl); //Send the display command
-  transmit(SPECIAL_COMMAND);                      //Send special command character
-  transmit(LCD_ENTRYMODESET | _displayMode);      //Send the entry mode command
-  transmit(SETTING_COMMAND);                      //Put LCD into setting mode
-  transmit(CLEAR_COMMAND);                        //Send clear display command
-  endTransmission();                              //Stop transmission
-  delay(50);                                      //let things settle a bit
- */
-
-/*
- *
- *
-*/
-
-/*//TODO: Uncomment this block; was commented because it caused compile errors
-void setup_LCD(){
-	uint8_t buf[12];
-	buf[0] = SPECIAL_COMMAND;
-	buf[2] = LCD_DISPLAYCONTROL | _displayControl;
-	buf[4] = SPECIAL_COMMAND;
-	buf[6] = LCD_ENTRYMODESET | _displayMode;
-	buf[8] = SETTING_COMMAND;
-	buf[10] = CLEAR_COMMAND;
-	ret = HAL_I2C_Master_Transmit(&hi2c1, ACC_W_ADDR, buf, 12, HAL_MAX_DELAY); //TODO: Uncomment me
-
-	if (ret != HAL_OK){
-		  strcpy((char*)buf, "No Write\r\n");
-		 HAL_UART_Transmit(&hlpuart1, buf, strlen((char*)buf), HAL_MAX_DELAY); //TODO: Uncomment me
-	}
-
-}
-*/
-
 
 //------------------------GIMBAL DRIVERS---------------------------------------
 
@@ -267,12 +176,12 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_I2C1_SMBUS_Init();
+  MX_I2C1_Init();
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
 
   initialize_gimbal();
-
+  OpenLCD_init(hi2c1);
 
   /* USER CODE END 2 */
 
@@ -343,7 +252,7 @@ void SystemClock_Config(void)
   * @param None
   * @retval None
   */
-static void MX_I2C1_SMBUS_Init(void)
+static void MX_I2C1_Init(void)
 {
 
   /* USER CODE BEGIN I2C1_Init 0 */
@@ -353,17 +262,16 @@ static void MX_I2C1_SMBUS_Init(void)
   /* USER CODE BEGIN I2C1_Init 1 */
 
   /* USER CODE END I2C1_Init 1 */
-  hsmbus1.Instance = I2C1;
-  hsmbus1.Init.ClockSpeed = 100000;
-  hsmbus1.Init.OwnAddress1 = 0;
-  hsmbus1.Init.AddressingMode = SMBUS_ADDRESSINGMODE_7BIT;
-  hsmbus1.Init.DualAddressMode = SMBUS_DUALADDRESS_DISABLE;
-  hsmbus1.Init.OwnAddress2 = 0;
-  hsmbus1.Init.GeneralCallMode = SMBUS_GENERALCALL_DISABLE;
-  hsmbus1.Init.NoStretchMode = SMBUS_NOSTRETCH_DISABLE;
-  hsmbus1.Init.PacketErrorCheckMode = SMBUS_PEC_DISABLE;
-  hsmbus1.Init.PeripheralMode = SMBUS_PERIPHERAL_MODE_SMBUS_SLAVE;
-  if (HAL_SMBUS_Init(&hsmbus1) != HAL_OK)
+  hi2c1.Instance = I2C1;
+  hi2c1.Init.ClockSpeed = 100000;
+  hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
+  hi2c1.Init.OwnAddress1 = 0;
+  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c1.Init.OwnAddress2 = 0;
+  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c1) != HAL_OK)
   {
     Error_Handler();
   }

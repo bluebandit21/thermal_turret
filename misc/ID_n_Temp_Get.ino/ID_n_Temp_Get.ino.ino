@@ -80,15 +80,21 @@ void loop()
   
   if (therm.object() > 77){
     lcd.setFastBacklight(255, 0, 0); //Set backlight to bright white
+    lcd.setCursor(0, 1);
+    // Print the number of seconds since reset:
+    lcd.print("Temperature: " + String(therm.object(), 2) + "F");
+    lcd.setCursor(0,0);
+    lcd.print("Ambient: " + String(therm.ambient(), 2) + "F");
   }
   else {
     lcd.setFastBacklight(0,255,0);
+    lcd.setCursor(0, 1);
+     // Print the number of seconds since reset:
+    lcd.print("Temperature: " + String(therm.object(), 2) + "F");
+    lcd.setCursor(0,0);
+    lcd.print("Ambient: " + String(therm.ambient(), 2) + "F");
   }
-  lcd.setCursor(0, 1);
-  // Print the number of seconds since reset:
-  lcd.print("Temperature: " + String(therm.object(), 2) + "F");
-  lcd.setCursor(0,0);
-  lcd.print("Ambient: " + String(therm.ambient(), 2) + "F");
+
 
     
   }

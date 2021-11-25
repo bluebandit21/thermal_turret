@@ -9,9 +9,13 @@ import time
 import RPi.GPIO as GPIO
 
 GPIO.setmode(GPIO.BOARD)
+#right
 GPIO.setup(11,GPIO.OUT)
+#left
 GPIO.setup(12,GPIO.OUT)
+#up
 GPIO.setup(21,GPIO.OUT)
+#down
 GPIO.setup(22,GPIO.OUT)
 
 

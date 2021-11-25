@@ -95,6 +95,12 @@
 #include "math.h"
 #include "stdio.h"
 
+void delay(uint32_t n) {
+	for (int i = 0; i < n*30000; i++){
+		printf("");
+	}
+}
+
 /*
  * Send a command to the display.
  * Used by other functions.
@@ -105,7 +111,7 @@ void OpenLCD_command(uint8_t command){
 	uint8_t buf[2];
 	buf[0] = SETTING_COMMAND;
 	buf[1] = command;
-	HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_i2cPort, _i2cAddr, buf, strlen((char*)buf), HAL_MAX_DELAY);
+	HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_i2cPort, _i2cAddrW, buf, 2, HAL_MAX_DELAY);
 	if (ret != HAL_OK){
 		printf("ERROR: Failure LCD: command(%x)\r\n", command);
 	}
@@ -121,7 +127,7 @@ void OpenLCD_specialCommand(uint8_t command){
 	uint8_t buf[2];
 	buf[0] = SPECIAL_COMMAND;
 	buf[1] = command;
-	HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_i2cPort, _i2cAddr, buf, strlen((char*)buf), HAL_MAX_DELAY);
+	HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_i2cPort, _i2cAddrW, buf, 2, HAL_MAX_DELAY);
 	if (ret != HAL_OK){
 		printf("ERROR: Failure LCD: specialCommand(%x)\r\n", command);
 	}
@@ -145,7 +151,7 @@ void OpenLCD_specialCommandMul(uint8_t command, uint8_t count)
     buf[n++] = SPECIAL_COMMAND; //Send special command character
     buf[n++] = command;         //Send command code
   }                            // for
-  HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_i2cPort, _i2cAddr, buf, strlen((char*)buf), HAL_MAX_DELAY);
+  HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_i2cPort, _i2cAddrW, buf, strlen((char*)buf), HAL_MAX_DELAY);
   if (ret != HAL_OK){
   	printf("ERROR: Failure LCD: specialCommandMul(%x, %i)\r\n", command, count);
   }
@@ -157,17 +163,9 @@ void OpenLCD_specialCommandMul(uint8_t command, uint8_t count)
  *
  */
 void OpenLCD_init(){
-	uint8_t buf[6];
-	buf[0] = SPECIAL_COMMAND;
-	buf[1] = LCD_DISPLAYCONTROL | _displayControl;
-	buf[2] = SPECIAL_COMMAND;
-	buf[3] = LCD_ENTRYMODESET | _displayMode;
-	buf[4] = SETTING_COMMAND;
-	buf[5] = CLEAR_COMMAND;
-	HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_i2cPort, _i2cAddr, buf, strlen((char*)buf), HAL_MAX_DELAY);
-	if (ret != HAL_OK){
-		 printf("ERROR: Failure LCD: LCD_init()\r\n");
-	}
+	OpenLCD_specialCommand(LCD_DISPLAYCONTROL | _displayControl);
+	OpenLCD_specialCommand(LCD_ENTRYMODESET | _displayMode);
+	OpenLCD_clear();
 	delay(50);
 }
 
@@ -188,7 +186,8 @@ void OpenLCD_begin(I2C_HandleTypeDef *i2c_handler)
  */
 void OpenLCD_beginCAddr(uint8_t i2c_addr, I2C_HandleTypeDef *i2c_handler)
 {
-  _i2cAddr = i2c_addr;
+  _i2cAddrW = (i2c_addr << 1);
+  _i2cAddrR = (i2c_addr << 1) | 1;
 
   OpenLCD_begin(i2c_handler);
 } // begin
@@ -252,7 +251,7 @@ void OpenLCD_createChar(uint8_t location, uint8_t charmap[])
   {
     buf[i + 2] = (charmap[i]);
   } // for
-  HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_i2cPort, _i2cAddr, buf, strlen((char*)buf), HAL_MAX_DELAY);
+  HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_i2cPort, _i2cAddrW, buf, strlen((char*)buf), HAL_MAX_DELAY);
   if (ret != HAL_OK){
   	 printf("ERROR: Failure LCD: createChar(%x, charmap = %x)\r\n", location, charmap);
   }
@@ -279,7 +278,7 @@ size_t OpenLCD_write(uint8_t b)
 {
   uint8_t buf[1];
   buf[0] = b;
-  HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_i2cPort, _i2cAddr, buf, 1, HAL_MAX_DELAY);
+  HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_i2cPort, _i2cAddrW, buf, 1, HAL_MAX_DELAY);
   if (ret != HAL_OK){
    	 printf("ERROR: Failure LCD: write(%c)\r\n", b);
   }
@@ -294,7 +293,7 @@ size_t OpenLCD_write(uint8_t b)
  */
 size_t OpenLCD_writebuff(const uint8_t *buffer, size_t size)
 {
-  HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_i2cPort, _i2cAddr, buffer, size, HAL_MAX_DELAY);
+  HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_i2cPort, _i2cAddrW, buffer, size, HAL_MAX_DELAY);
   if (ret != HAL_OK){
 	  printf("ERROR: Failure LCD: write(const uint8_t * %x, %i)\r\n", buffer, size);
   }
@@ -493,7 +492,7 @@ void OpenLCD_setBacklightrgb(uint8_t r, uint8_t g, uint8_t b)
   _displayControl |= LCD_DISPLAYON;
   buf[8] = SPECIAL_COMMAND;                      //Send special command character
   buf[9] = LCD_DISPLAYCONTROL | _displayControl; //Turn display on as before
-  HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_i2cPort, _i2cAddr, buf, strlen((char*)buf), HAL_MAX_DELAY);
+  HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_i2cPort, _i2cAddrW, buf, 10, HAL_MAX_DELAY);
   if (ret != HAL_OK){
    	 printf("ERROR: Failure LCD: setBacklight(%i, %i, %i)\r\n", r, g, b);
   }
@@ -526,7 +525,7 @@ void OpenLCD_setFastBacklightrgb(uint8_t r, uint8_t g, uint8_t b){
 	buf[2] = r;
 	buf[3] = g;
 	buf[4] = b;
-	HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_i2cPort, _i2cAddr, buf, strlen((char*)buf), HAL_MAX_DELAY);
+	HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_i2cPort, _i2cAddrW, buf, 5, HAL_MAX_DELAY);
 	if (ret != HAL_OK){
 		printf("ERROR: Failure LCD: setFastBacklight(%i, %i, %i)\r\n", r, g, b);
 	}
@@ -583,7 +582,7 @@ void OpenLCD_setContrast(uint8_t contrast){
 	buf[0] = SETTING_COMMAND;
 	buf[1] = CONTRAST_COMMAND;
 	buf[2] = contrast;
-	HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_i2cPort, _i2cAddr, buf, strlen((char*)buf), HAL_MAX_DELAY);
+	HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_i2cPort, _i2cAddrW, buf, 3, HAL_MAX_DELAY);
 	if (ret != HAL_OK){
 		printf("ERROR: Failure LCD: SetContrast(%i)\r\n", contrast);
 	}
@@ -608,9 +607,10 @@ void OpenLCD_setAddress(uint8_t new_addr)
   buf[2] = new_addr;        //Send new Address value
 
   //Update our own address so we can still talk to the display
-  _i2cAddr = new_addr;
+  _i2cAddrW = (new_addr << 1);
+  _i2cAddrR = (new_addr << 1) | 1;
 
-  HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_i2cPort, _i2cAddr, buf, strlen((char*)buf), HAL_MAX_DELAY);
+  HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_i2cPort, _i2cAddrW, buf, 3, HAL_MAX_DELAY);
   if (ret != HAL_OK){
   	printf("ERROR: Failure LCD: SetAddress(%x)\r\n", new_addr);
   }
@@ -623,7 +623,7 @@ void OpenLCD_setAddress(uint8_t new_addr)
 void OpenLCD_enableSystemMessages()
 {
   uint8_t buf[2] = {SETTING_COMMAND, ENABLE_SYSTEM_MESSAGE_DISPLAY};
-  HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_i2cPort, _i2cAddr, buf, strlen((char*)buf), HAL_MAX_DELAY);
+  HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_i2cPort, _i2cAddrW, buf, 2, HAL_MAX_DELAY);
   if (ret != HAL_OK){
     printf("ERROR: Failure LCD: enableSystemMessages()\r\n");
   }
@@ -635,7 +635,7 @@ void OpenLCD_enableSystemMessages()
 void OpenLCD_disableSystemMessages()
 {
 	uint8_t buf[2] = {SETTING_COMMAND, DISABLE_SYSTEM_MESSAGE_DISPLAY};
-	HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_i2cPort, _i2cAddr, buf, strlen((char*)buf), HAL_MAX_DELAY);
+	HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_i2cPort, _i2cAddrW, buf, 2, HAL_MAX_DELAY);
 	if (ret != HAL_OK){
 	  printf("ERROR: Failure LCD: disableSystemMessages()\r\n");
 	}
@@ -646,7 +646,7 @@ void OpenLCD_disableSystemMessages()
 void OpenLCD_enableSplash()
 {
 	uint8_t buf[2] = {SETTING_COMMAND, ENABLE_SPLASH_DISPLAY};
-	HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_i2cPort, _i2cAddr, buf, strlen((char*)buf), HAL_MAX_DELAY);
+	HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_i2cPort, _i2cAddrW, buf, 2, HAL_MAX_DELAY);
 	if (ret != HAL_OK){
 	  printf("ERROR: Failure LCD: enableSplashDisplay()\r\n");
 	}
@@ -657,7 +657,7 @@ void OpenLCD_enableSplash()
 void OpenLCD_disableSplash()
 {
 	uint8_t buf[2] = {SETTING_COMMAND, DISABLE_SPLASH_DISPLAY};
-	HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_i2cPort, _i2cAddr, buf, strlen((char*)buf), HAL_MAX_DELAY);
+	HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_i2cPort, _i2cAddrW, buf, 2, HAL_MAX_DELAY);
 	if (ret != HAL_OK){
 	 printf("ERROR: Failure LCD: disableSplashDisplay()\r\n");
 	}
@@ -670,7 +670,7 @@ void OpenLCD_saveSplash()
   //Save whatever is currently being displayed into EEPROM
   //This will be displayed at next power on as the splash screen
   uint8_t buf[2] = {SETTING_COMMAND, SAVE_CURRENT_DISPLAY_AS_SPLASH};
-  HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_i2cPort, _i2cAddr, buf, strlen((char*)buf), HAL_MAX_DELAY);
+  HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_i2cPort, _i2cAddrW, buf, 2, HAL_MAX_DELAY);
   if (ret != HAL_OK){
    printf("ERROR: Failure LCD: saveSplash()\r\n");
   }
@@ -684,5 +684,5 @@ void OpenLCD_saveSplash()
  */
 uint8_t OpenLCD_getAddress()
 {
-  return _i2cAddr;
+  return (_i2cAddrW >> 1);
 } //getAddress

@@ -17,7 +17,8 @@
 //------------------------LCD DRIVERS---------------------------------------
 
 
-#define DISPLAY_ADDRESS1 0x72 //This is the default address of the OpenLCD
+#define DISPLAY_ADDRESS1W 0xE4 //This is the default address of the OpenLCD
+#define DISPLAY_ADDRESS1R 0xE5
 #define MAX_ROWS 4
 #define MAX_COLUMNS 20
 
@@ -64,7 +65,8 @@
 #define LCD_MOVELEFT 0x00
 
 
-static uint8_t _i2cAddr = DISPLAY_ADDRESS1;
+static uint8_t _i2cAddrW = DISPLAY_ADDRESS1W;
+static uint8_t _i2cAddrR = DISPLAY_ADDRESS1R;
 static uint8_t _displayControl = LCD_DISPLAYON | LCD_CURSOROFF | LCD_BLINKOFF;
 static uint8_t _displayMode = LCD_ENTRYLEFT | LCD_ENTRYSHIFTDECREMENT;
 static I2C_HandleTypeDef* _i2cPort = NULL;   //The generic connection to user's chosen I2C hardware

@@ -181,7 +181,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   initialize_gimbal();
-  OpenLCD_init(hi2c1);
+  OpenLCD_begin(&hi2c1);
 
   /* USER CODE END 2 */
 

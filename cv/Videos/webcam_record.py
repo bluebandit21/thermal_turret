@@ -6,9 +6,17 @@ import numpy as np
 import cv2
 import math
 import time
+import RPi.GPIO as GPIO
+
+GPIO.setmode(GPIO.BOARD)
+GPIO.setup(11,GPIO.OUT)
+GPIO.setup(12,GPIO.OUT)
+GPIO.setup(21,GPIO.OUT)
+GPIO.setup(22,GPIO.OUT)
 
 
-cap = cv2.VideoCapture(1)
+
+cap = cv2.VideoCapture(-1)
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
 
 out = cv2.VideoWriter('output.avi',fourcc, 20.0, (1280, 720))
@@ -50,17 +58,74 @@ while(cap.isOpened()):
         print("shoot")
         cv2.rectangle(frame, (math.ceil(frame.shape[1] / 2) - 40, math.ceil(frame.shape[0] / 2) - 40),
                         (math.ceil(frame.shape[1] / 2) + 40, math.ceil(frame.shape[0] / 2) + 40), (255, 0, 0), 3)
-    
- 
 
-    if (my_dict["75"][0] > center[0]):
+
+
+    #4 pins for direction, 11 right, 12 left, 21 up, 22 down   
+    #Right-Up
+    if (my_dict["75"][0] > center[0] and my_dict["69"][1] > center[1]):
+        GPIO.output(12,False)
+        GPIO.output(11,True)
+        GPIO.output(22,False)
+        GPIO.output(21,True)
+        print("RIGHT-UP")
+    #Right-Down
+    elif (my_dict["75"][0] > center[0] and my_dict["19"][1] < center[1]):
+        GPIO.output(12,False)
+        GPIO.output(11,True)
+        GPIO.output(21,False)
+        GPIO.output(22,True)
+        print("RIGHT-DOWN")
+
+    #Left-up
+    elif (my_dict["74"][0] < center[0] and my_dict["69"][1] > center[1]):
+        GPIO.output(11,False)
+        GPIO.output(12,True)
+        GPIO.output(22,False)
+        GPIO.output(21,True)
+        print("LEFT-UP")
+    #Left-Down
+    elif (my_dict["74"][0] < center[0] and my_dict["19"][1] < center[1]):
+        GPIO.output(11,False)
+        GPIO.output(12,True)
+        GPIO.output(21,False)
+        GPIO.output(22,True)
+        print("LEFT-DOWN")
+
+    #Right
+    elif (my_dict["75"][0] > center[0]):
+        GPIO.output(12,False)
+        GPIO.output(21,False)
+        GPIO.output(22,False)
+        GPIO.output(11,True)
         print("RIGHT")
+    #Left
     elif (my_dict["74"][0] < center[0]):
+        GPIO.output(11,False)
+        GPIO.output(21,False)
+        GPIO.output(22,False)
+        GPIO.output(12,True)
         print("LEFT")
-    if (my_dict["69"][1] > center[1]):
+    #Up
+    elif (my_dict["69"][1] > center[1]):
+        GPIO.output(11,False)
+        GPIO.output(12,False)
+        GPIO.output(22,False)
+        GPIO.output(21,True)
         print("UP")
+    #Down
     elif (my_dict["19"][1] < center[1]):
+        GPIO.output(11,False)
+        GPIO.output(12,False)
+        GPIO.output(21,False)
+        GPIO.output(22,True)
         print("DOWN")
+    else:
+        GPIO.output(11,True)
+        GPIO.output(12,True)
+        GPIO.output(21,True)
+        GPIO.output(22,True)
+
 
     out.write(frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -73,5 +138,6 @@ cap.release()
 out.release()
 
 cv2.destroyAllWindows()
+
 
 

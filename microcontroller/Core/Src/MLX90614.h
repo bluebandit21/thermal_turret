@@ -15,13 +15,13 @@
  * 		     /						    \
  * 		    /						     \
  * 		   /						      \
- *    ____/__  ______  ______  ______  ____\___
+ *    ____/__  ______  ______  ______  ____\__
  *   /       \/      \/      \/      \/       \
  *  /										    \
  * |										     |
  *  \										    /
  *   \										   /
- *    \______/\______/\______/\______/\______/
+ *    \______/\______/\______/\______/\_______/
  *
  * This Library is based on:
  * SparkFunMLX90614.cpp
@@ -43,6 +43,7 @@
 
 #include "math.h"
 #include "float.h"
+#include "stdbool.h"
 
 //////////////////////////////////
 // MLX90614 Default I2C Address //
@@ -77,65 +78,29 @@ typedef enum {
 	TEMP_F
 } temperature_units;
 
-struct IRTherm
-{
-	// Default constructor, does very little besides setting class variable
-	// initial values.
-	IRTherm();
+uint8_t _deviceAddress; // MLX90614's 7-bit I2C address
+I2C_HandleTypeDef* _i2cPort;
+temperature_units _defaultUnit; // Keeps track of configured temperature unit
 
-	// begin(<address>) initializes the Wire library, and prepares
-	// communication with an MLX90614 device at the specified 7-bit I2C
-	// address.
-	// If no parameter is supplied, the default MLX90614 address is used.
-	bool begin(I2C_HandleTypeDef* i2cP, uint8_t address = MLX90614_DEFAULT_ADDRESS);
+// These keep track of the raw temperature values read from the sensor:
+int16_t _rawAmbient, _rawObject, _rawObject2, _rawMax, _rawMin;
+uint16_t id[4]; // Keeps track of the 64-bit ID value
 
-	bool isConnected();
 
-	// setUnit(<unit>) configures the units returned by the ambient(),
-	// object(), minimum() and maximum() functions, and it determines what
-	// units the setMin() and setMax() functions should expect.
-	// <unit> can be either:
-	//  - TEMP_RAW: No conversion, just the raw 12-bit ADC reading
-	//  - TEMP_K: Kelvin
-	//  - TEMP_C: Celsius
-	//  - TEMP_F: Farenheit
-	void setUnit(temperature_units unit);
 
-	// read() pulls the latest ambient and object temperatures from the
-	// MLX90614. It will return either 1 on success or 0 on failure. (Failure
-	// can result from either a timed out I2C transmission, or an incorrect
-	// checksum value).
-	bool read(void);
 
-	// object() returns the MLX90614's most recently read object temperature
-	// after the read() function has returned successfully. The float value
-	// returned will be in the units specified by setUnit().
-	float object(void);
-
-	// ambient() returns the MLX90614's most recently read ambient temperature
-	// after the read() function has returned successfully. The float value
-	// returned will be in the units specified by setUnit().
-	float ambient(void);
-
-	// readEmissivity() reads the MLX90614's emissivity setting. It will
-	// return a value between 0.1 and 1.0.
-	float readEmissivity();
-
-	// setEmissivity(<emis>) can set the MLX90614's configured emissivity
-	// EEPROM value.
-	// The <emis> parameter should be a value between 0.1 and 1.0.
-	// The function will return either 1 on success or 0 on failure.
-	uint8_t setEmissivity(float emis);
-
-	// readAddress() returns the MLX90614's configured 7-bit I2C bus address.
-	// A value between 0x01 and 0x7F should be returned.
-	uint8_t readAddress();
-
-	// setAddress(<newAdd>) can set the MLX90614's 7-bit I2C bus address.
-	// The <newAdd> parameter should be a value between 0x01 and 0x7F.
-	// The function returns 1 on success and 0 on failure.
-	// The new address won't take effect until the device is reset.
-	bool setAddress(uint8_t newAdd);
+void MLX_IRTherm();
+bool MLX_begin(I2C_HandleTypeDef* i2cP);
+bool MLX_beginCAddr(I2C_HandleTypeDef* i2cP, uint8_t address);
+bool MLX_isConnected();
+void MLX_setUnit(temperature_units unit);
+bool MLX_read();
+float MLX_object();
+float MLX_ambient();
+float MLX_readEmissivity();
+uint8_t MLX_setEmissivity(float emis);
+uint8_t MLX_readAddress();
+bool MLX_setAddress(uint8_t newAdd);
 
 	// readID() reads the 64-bit ID of the MLX90614.
 	// Return value is either 1 on success or 0 on failure.
@@ -170,49 +135,40 @@ struct IRTherm
 	void wake();
 
 
-	uint8_t _deviceAddress; // MLX90614's 7-bit I2C address
-	I2C_HandleTypeDef* _i2cPort;
-
-	temperature_units _defaultUnit; // Keeps track of configured temperature unit
-
-	// These keep track of the raw temperature values read from the sensor:
-	int16_t _rawAmbient, _rawObject, _rawObject2, _rawMax, _rawMin;
-
-	uint16_t id[4]; // Keeps track of the 64-bit ID value
 
 	// These functions individually read the object, object2, and ambient
 	// temperature values from the MLX90614's RAM:
-	bool readObject(void);
-	bool readObject2(void);
-	bool readAmbient(void);
+bool readObject(void);
+bool readObject2(void);
+bool readAmbient(void);
 
 	// These functions individually read the min and mx temperatures in
 	// the MLX90614's EEPROM:
-	bool readMax(void);
-	bool readMin(void);
+bool readMax(void);
+bool readMin(void);
 
 	// calcTemperature converts a raw ADC temperature reading to the
 	// set unit.
-	float calcTemperature(int16_t rawTemp);
+float calcTemperature(int16_t rawTemp);
 
 	// calcRawTemperature converts a set unit temperature to a
 	// raw ADC value:
-	int16_t calcRawTemp(float calcTemp);
+int16_t calcRawTemp(float calcTemp);
 
 	// Abstract function to write 16-bits to an address in the MLX90614's
 	// EEPROM
-	bool writeEEPROM(byte reg, int16_t data);
+bool writeEEPROM(uint8_t reg, int16_t data);
 
 	// Abstract functions to read and write 16-bit values from a RAM
 	// or EEPROM address in the MLX90614
-	bool I2CReadWord(byte reg, int16_t * dest);
-	uint8_t I2CWriteWord(byte reg, int16_t data);
+bool I2CReadWord(uint8_t reg, int16_t * dest);
+uint8_t I2CWriteWord(uint8_t reg, int16_t data);
 
 	// crc8 returns a calculated crc value given an initial value and
 	// input data.
 	// It's configured to calculate the CRC using a x^8+x^2+x^1+1 poly
-	uint8_t crc8 (uint8_t inCrc, uint8_t inData);
-};
+uint8_t crc8 (uint8_t inCrc, uint8_t inData);
+
 
 
 

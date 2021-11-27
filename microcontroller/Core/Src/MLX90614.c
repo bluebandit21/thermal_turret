@@ -206,12 +206,146 @@ bool MLX_setAddress(uint8_t newAdd){
 		tempAdd &= 0xFF00; // Mask out the address (MSB is junk?)
 		tempAdd |= newAdd; // Add the new address
 
-		// Write the new addres back to EEPROM:
+		// Write the new address back to EEPROM:
 		return MLX_writeEEPROM(MLX90614_REGISTER_ADDRESS, tempAdd);
 	}
 	return 0;
 }
 
+/* readID() reads the 64-bit ID of the MLX90614.
+ * Return value is either 1 on success or 0 on failure.
+ */
+uint8_t MLX_readID(){
+	for (int i=0; i<4; i++)
+	{
+		int16_t temp = 0;
+		// Read from all four ID registers, beginning at the first:
+		if (!MLX_I2CReadWord(MLX90614_REGISTER_ID0 + i, &temp))
+			return 0;
+		// If the read succeeded, store the ID into the id array:
+		id[i] = (uint16_t)temp;
+	}
+	return 1;
+}
+
+/* After calling readID(), getIDH() and getIDL() can be called to read
+ * the upper 4 bytes and lower 4-bytes, respectively, of the MLX90614's
+ * identification registers.
+ */
+uint32_t MLX_getIDH(){
+	// Return the upper 32 bits of the ID
+	return ((uint32_t)id[3] << 16) | id[2];
+}
+
+/* After calling readID(), getIDH() and getIDL() can be called to read
+ * the upper 4 bytes and lower 4-bytes, respectively, of the MLX90614's
+ * identification registers.
+ */
+uint32_t MLX_getIDL(){
+	// Return the lower 32 bits of the ID
+	return ((uint32_t)id[1] << 16) | id[0];
+}
+
+/* readRange() pulls the object maximum and minimum values stored in the
+ * MLX90614's EEPROM.
+ * It will return either 1 on success or 0 on failure.
+ */
+bool MLX_readRange() {
+	// Read both minimum and maximum values from EEPROM
+	if (MLX_readMin() && MLX_readMax())
+	{
+		// If the read succeeded, return success
+		return true;
+	}
+	return false; // Else return fail
+}
+
+/* minimum() and maximum() return the MLX90614's minimum and maximum object
+ * sensor readings.
+ * The float values returned will be in the units specified by setUnit().
+ */
+float minimum(){
+	// Return the calculated minimum temperature
+	return MLX_calcTemperature(_rawMin);
+}
+
+
+
+/* minimum() and maximum() return the MLX90614's minimum and maximum object
+ * sensor readings.
+ * The float values returned will be in the units specified by setUnit().
+ */
+float maximum(){
+	// Return the calculated maximum temperature
+	return MLX_calcTemperature(_rawMax);
+}
+
+
+/* setMax(<maxTemp>) and setMin(<minTemp>) configure the MLX90614's
+ * maximum and minimum object sensor temperatures.
+ */
+uint8_t MLX_setMax(float maxTemp){
+	// Convert the unit-ed value to a raw ADC value:
+	int16_t rawMax = MLX_calcRawTemp(maxTemp);
+	// Write that value to the TOMAX EEPROM address:
+	return MLX_writeEEPROM(MLX90614_REGISTER_TOMAX, rawMax);
+}
+
+/* setMax(<maxTemp>) and setMin(<minTemp>) configure the MLX90614's
+ * maximum and minimum object sensor temperatures.
+ */
+uint8_t MLX_setMin(float minTemp){
+	// Convert the unit-ed value to a raw ADC value:
+	int16_t rawMin = MLX_calcRawTemp(minTemp);
+	// Write that value to the TOMIN EEPROM address:
+	return MLX_writeEEPROM(MLX90614_REGISTER_TOMIN, rawMin);
+}
+
+/*
+ * WARNING:This method is not set up at the moment
+ * MLX_sleep() sets the MLX90614 into a low-power sleep mode.
+ */
+void MLX_sleep(){
+	// Calculate a crc8 value.
+	// Bits sent: _deviceAddress (shifted left 1) + 0xFF
+	uint8_t crc = MLX_crc8(0, (_deviceAddress << 1));
+	crc = MLX_crc8(crc, MLX90614_REGISTER_SLEEP);
+
+	uint8_t buf[2];
+	buf[0] = MLX90614_REGISTER_SLEEP;
+	buf[1] = crc;
+
+	HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_i2cPort, _deviceAddress, buf, 2, HAL_MAX_DELAY);
+	if (ret != HAL_OK){
+		printf("ERROR: MLX90614: Sleep command failed: %x", ret);
+	}
+
+	// Set the SCL pin LOW, and SDA pin HIGH (should be pulled up)
+	//pinMode(SCL, OUTPUT);
+	//digitalWrite(SCL, LOW);
+	//pinMode(SDA, INPUT);
+}
+
+/*
+ * WARNING:This method is not set up at the moment
+ * MLX_wake() should revive the MLX90614 from low-power sleep mode.
+ */
+void MLX_wake(){
+	// Wake operation from datasheet
+//	_i2cPort->endTransmission(true); // stop i2c bus transmission BEFORE sending wake up request
+//	pinMode(SCL, INPUT); // SCL high
+//	pinMode(SDA, OUTPUT);
+//	digitalWrite(SDA, LOW); // SDA low
+//	delay(50); // delay at least 33ms
+//	pinMode(SDA, INPUT); // SDA high
+//	delay(250);
+//	// PWM to SMBus mode:
+//	pinMode(SCL, OUTPUT);
+//	digitalWrite(SCL, LOW); // SCL low
+//	delay(10); // Delay at least 1.44ms
+//	pinMode(SCL, INPUT); // SCL high
+//	_i2cPort->beginTransmission(_deviceAddress); // reactivate i2c bus transmission AFTER sending wake up request
+}
 
 
 

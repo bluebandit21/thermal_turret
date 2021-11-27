@@ -101,38 +101,16 @@ float MLX_readEmissivity();
 uint8_t MLX_setEmissivity(float emis);
 uint8_t MLX_readAddress();
 bool MLX_setAddress(uint8_t newAdd);
-
-	// readID() reads the 64-bit ID of the MLX90614.
-	// Return value is either 1 on success or 0 on failure.
-	uint8_t readID();
-
-	// After calling readID() getIDH() and getIDL() can be called to read
-	// the upper 4 bytes and lower 4-bytes, respectively, of the MLX90614's
-	// identification registers.
-	uint32_t getIDH();
-	uint32_t getIDL();
-
-	// readRange() pulls the object maximum and minimum values stored in the
-	// MLX90614's EEPROM.
-	// It will return either 1 on success or 0 on failure.
-	bool readRange(void);
-
-	// minimum() and maximum() return the MLX90614's minimum and maximum object
-	// sensor readings.
-	// The float values returned will be in the units specified by setUnit().
-	float minimum(void);
-	float maximum(void);
-
-	// setMax(<maxTemp>) and setMin(<minTemp>) configure the MLX90614's
-	// maximum and minimum object sensor temperatures.
-	uint8_t setMax(float maxTemp);
-	uint8_t setMin(float minTemp);
-
-	// sleep() sets the MLX90614 into a low-power sleep mode.
-	void sleep();
-
-	// wake() should revive the MLX90614 from low-power sleep mode.
-	void wake();
+uint8_t MLX_readID();
+uint32_t MLX_getIDH();
+uint32_t MLX_getIDL();
+bool MLX_readRange();
+float MLX_minimum();
+float MLX_maximum();
+uint8_t MLX_setMax(float maxTemp);
+uint8_t MLX_setMin(float minTemp);
+void MLX_sleep();
+void MLX_wake();
 
 
 
@@ -168,10 +146,6 @@ uint8_t I2CWriteWord(uint8_t reg, int16_t data);
 	// input data.
 	// It's configured to calculate the CRC using a x^8+x^2+x^1+1 poly
 uint8_t crc8 (uint8_t inCrc, uint8_t inData);
-
-
-
-
 
 
 #endif /* SRC_MLX90614_H_ */

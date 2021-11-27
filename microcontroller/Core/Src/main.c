@@ -200,7 +200,8 @@ int main(void)
     /* USER CODE BEGIN 3 */
 
 	  set_gimbal_angles(45, 0);
-
+	  HAL_ADC_Start(&hadc1);//start conversion
+	  HAL_ADC_PollForConversion(&hadc1, 0xFFFFFFFF);//wait for conversion to finish3290
 	  int ADC_VAL = HAL_ADC_GetValue(&hadc1);
 
 	  HAL_Delay(3200);
@@ -270,7 +271,7 @@ static void MX_ADC1_Init(void)
   hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV2;
   hadc1.Init.Resolution = ADC_RESOLUTION_12B;
   hadc1.Init.ScanConvMode = DISABLE;
-  hadc1.Init.ContinuousConvMode = ENABLE;
+  hadc1.Init.ContinuousConvMode = DISABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;

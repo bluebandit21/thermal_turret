@@ -24,6 +24,7 @@
 /* USER CODE BEGIN Includes */
 #include "math.h"
 #include "OpenLCD.h"
+#include "stdio.h"
 
 /* USER CODE END Includes */
 
@@ -55,6 +56,10 @@
 #define SERVO_PITCH_MAX_SAFE_ANGLE_MIN 40
 #define SERVO_PITCH_MAX_SAFE_ANGLE_MAX -75
 
+//------------------------TOUCH THERMOMETER CONSTANTS-----------------------------
+#define R1 9.7 //9.7 kOhms
+#define R2 32.3 //32.3 kOhms
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -69,6 +74,8 @@ I2C_HandleTypeDef hi2c1;
 
 TIM_HandleTypeDef htim1;
 
+UART_HandleTypeDef huart2;
+
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -79,6 +86,7 @@ static void MX_GPIO_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_ADC1_Init(void);
+static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -184,6 +192,7 @@ int main(void)
   MX_I2C1_Init();
   MX_TIM1_Init();
   MX_ADC1_Init();
+  MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
   initialize_gimbal();
@@ -202,7 +211,19 @@ int main(void)
 	  set_gimbal_angles(45, 0);
 	  HAL_ADC_Start(&hadc1);//start conversion
 	  HAL_ADC_PollForConversion(&hadc1, 0xFFFFFFFF);//wait for conversion to finish3290
-	  int ADC_VAL = HAL_ADC_GetValue(&hadc1);
+	  float RAW_COUNT = HAL_ADC_GetValue(&hadc1);
+	  float voltage = RAW_COUNT * 3.3 / 4096;
+	  float corrected_voltage = (voltage * R1 / R2) - 0.5; //Remove DC offset, de scale
+	  float temp_c = corrected_voltage * 100;
+	  float temp_f = temp_c * 1.8  + 32;
+
+	  static val=0;
+	  val+=1;
+	  val%=10;
+	  float thing = 1.5;
+	  printf("Running %d\r\n", val);
+	  printf("Thing is %f\r\n", thing);
+	  HAL_Delay(100);
 
 	  HAL_Delay(3200);
   }
@@ -412,6 +433,39 @@ static void MX_TIM1_Init(void)
 }
 
 /**
+  * @brief USART2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART2_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART2_Init 0 */
+
+  /* USER CODE END USART2_Init 0 */
+
+  /* USER CODE BEGIN USART2_Init 1 */
+
+  /* USER CODE END USART2_Init 1 */
+  huart2.Instance = USART2;
+  huart2.Init.BaudRate = 115200;
+  huart2.Init.WordLength = UART_WORDLENGTH_8B;
+  huart2.Init.StopBits = UART_STOPBITS_1;
+  huart2.Init.Parity = UART_PARITY_NONE;
+  huart2.Init.Mode = UART_MODE_TX_RX;
+  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART2_Init 2 */
+
+  /* USER CODE END USART2_Init 2 */
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -426,6 +480,20 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+
+
+#ifdef __GNUC__
+#define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
+#else
+  #define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
+#endif /* __GNUC__ */
+PUTCHAR_PROTOTYPE
+{
+  HAL_UART_Transmit(&huart2, (uint8_t *)&ch, 1, 0xFFFF);
+  return ch;
+}
+
 
 /* USER CODE END 4 */
 

@@ -41,6 +41,7 @@
 #ifndef SRC_MLX90614_H_
 #define SRC_MLX90614_H_
 
+#include "main.h"
 #include "math.h"
 #include "float.h"
 #include "stdbool.h"
@@ -78,13 +79,13 @@ typedef enum {
 	TEMP_F
 } temperature_units;
 
-uint8_t _deviceAddress; // MLX90614's 7-bit I2C address
-I2C_HandleTypeDef* _i2cPort;
-temperature_units _defaultUnit; // Keeps track of configured temperature unit
+uint8_t _MLX_deviceAddress; // MLX90614's 7-bit I2C address
+I2C_HandleTypeDef* _MLX_i2cPort;
+temperature_units _MLX_defaultUnit; // Keeps track of configured temperature unit
 
 // These keep track of the raw temperature values read from the sensor:
-int16_t _rawAmbient, _rawObject, _rawObject2, _rawMax, _rawMin;
-uint16_t id[4]; // Keeps track of the 64-bit ID value
+int16_t _MLX_rawAmbient, _MLX_rawObject, _MLX_rawObject2, _MLX_rawMax, _MLX_rawMin;
+uint16_t _MLX_id[4]; // Keeps track of the 64-bit ID value
 
 
 
@@ -111,23 +112,17 @@ uint8_t MLX_setMax(float maxTemp);
 uint8_t MLX_setMin(float minTemp);
 void MLX_sleep();
 void MLX_wake();
-
-
-
-	// These functions individually read the object, object2, and ambient
-	// temperature values from the MLX90614's RAM:
-bool readObject(void);
-bool readObject2(void);
-bool readAmbient(void);
+bool MLX_readObject();
+bool MLX_readObject2();
+bool MLX_readAmbient();
 
 	// These functions individually read the min and mx temperatures in
 	// the MLX90614's EEPROM:
 bool readMax(void);
 bool readMin(void);
 
-	// calcTemperature converts a raw ADC temperature reading to the
-	// set unit.
-float calcTemperature(int16_t rawTemp);
+
+float MLX_calcTemperature(int16_t rawTemp);
 
 	// calcRawTemperature converts a set unit temperature to a
 	// raw ADC value:
@@ -137,15 +132,20 @@ int16_t calcRawTemp(float calcTemp);
 	// EEPROM
 bool writeEEPROM(uint8_t reg, int16_t data);
 
-	// Abstract functions to read and write 16-bit values from a RAM
-	// or EEPROM address in the MLX90614
-bool I2CReadWord(uint8_t reg, int16_t * dest);
-uint8_t I2CWriteWord(uint8_t reg, int16_t data);
 
-	// crc8 returns a calculated crc value given an initial value and
-	// input data.
-	// It's configured to calculate the CRC using a x^8+x^2+x^1+1 poly
-uint8_t crc8 (uint8_t inCrc, uint8_t inData);
+bool MLX_I2CReadWord(uint8_t reg, int16_t * dest);
+uint8_t MLX_I2CWriteWord(uint8_t reg, int16_t data);
+uint8_t MLX_crc8 (uint8_t inCrc, uint8_t inData);
 
 
 #endif /* SRC_MLX90614_H_ */
+
+
+/*
+ * MLX_IRTherm();
+ * MLX_begin(&hi2c1);
+ * MLX_setUnit(TEMP_F);
+ * MLX_read();
+ * MLX_Object();
+ * MLX_ambient();
+ */

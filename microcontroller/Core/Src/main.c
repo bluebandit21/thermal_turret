@@ -24,6 +24,7 @@
 /* USER CODE BEGIN Includes */
 #include "math.h"
 #include "OpenLCD.h"
+#include "MLX90614.h"
 
 /* USER CODE END Includes */
 
@@ -181,14 +182,24 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_I2C1_Init();
   MX_TIM1_Init();
   MX_ADC1_Init();
+  MX_I2C1_Init();
+
   /* USER CODE BEGIN 2 */
 
+  float MLX_object_temp, MLX_ambient_temp;
+  bool MLX_OK;
+  HAL_StatusTypeDef ret;
+  HAL_I2C_StateTypeDef state;
   initialize_gimbal();
   OpenLCD_begin(&hi2c1);
-
+  MLX_IRTherm();
+  MLX_OK = MLX_begin(&hi2c1);
+  if (!MLX_OK){
+	  printf("ERROR: MLX90614: MLX_begin(): Not Connected");
+  }
+  MLX_setUnit(TEMP_F);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -199,11 +210,16 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
+	  MLX_read();
+	  MLX_object_temp = MLX_object();
+	  MLX_ambient_temp = MLX_ambient();
+
+	  /*
 	  set_gimbal_angles(45, 0);
 	  HAL_ADC_Start(&hadc1);//start conversion
 	  HAL_ADC_PollForConversion(&hadc1, 0xFFFFFFFF);//wait for conversion to finish3290
 	  int ADC_VAL = HAL_ADC_GetValue(&hadc1);
-
+	  */
 	  HAL_Delay(3200);
   }
   /* USER CODE END 3 */

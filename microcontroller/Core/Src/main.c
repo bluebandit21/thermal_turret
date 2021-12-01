@@ -328,7 +328,13 @@ int main(void)
 
   /* USER CODE BEGIN 2 */
 
-  I2C_Module I2C = { &hi2c1, I2C1_SDA_Pin, I2C1_SDA_GPIO_Port, I2C1_SCL_Pin, I2C1_SCL_GPIO_Port};
+  I2C_Module I2C;
+  I2C.instance = hi2c1;
+  I2C.sclPin = I2C1_SCL_Pin;
+  I2C.sclPort = I2C1_SCL_GPIO_Port;
+  I2C.sdaPin = I2C1_SDA_Pin;
+  I2C.sdaPort = I2C1_SDA_GPIO_Port;
+
   I2C_ClearBusyFlagErratum(&I2C);
 
   float MLX_object_temp, MLX_ambient_temp;

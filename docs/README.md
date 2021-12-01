@@ -31,3 +31,7 @@ https://forums.developer.nvidia.com/t/google-mediapipe-real-time-hand-tracking-o
 
 
 https://github.com/yockgen/mediapipe_jetson_nano
+
+#### HEL_BUSY Fix
+https://stackoverflow.com/questions/330793/how-to-initialize-a-struct-in-accordance-with-c-programming-language-standards
+

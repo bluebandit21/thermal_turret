@@ -115,26 +115,13 @@ void MLX_wake();
 bool MLX_readObject();
 bool MLX_readObject2();
 bool MLX_readAmbient();
-
-	// These functions individually read the min and mx temperatures in
-	// the MLX90614's EEPROM:
-bool readMax(void);
-bool readMin(void);
-
-
+bool MLX_readMax();
+bool MLX_readMin();
 float MLX_calcTemperature(int16_t rawTemp);
-
-	// calcRawTemperature converts a set unit temperature to a
-	// raw ADC value:
-int16_t calcRawTemp(float calcTemp);
-
-	// Abstract function to write 16-bits to an address in the MLX90614's
-	// EEPROM
-bool writeEEPROM(uint8_t reg, int16_t data);
-
-
+int16_t MLX_calcRawTemp(float calcTemp);
+bool MLX_writeEEPROM(uint8_t reg, int16_t data);
 bool MLX_I2CReadWord(uint8_t reg, int16_t * dest);
-uint8_t MLX_I2CWriteWord(uint8_t reg, int16_t data);
+HAL_StatusTypeDef MLX_I2CWriteWord(uint8_t reg, int16_t data);
 uint8_t MLX_crc8 (uint8_t inCrc, uint8_t inData);
 
 

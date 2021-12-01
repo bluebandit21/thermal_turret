@@ -404,21 +404,33 @@ bool MLX_readAmbient(){
 	return false; // else return fail
 }
 
+/* This function individually reads the MAX temperature in
+ * the MLX90614's EEPROM:
+ */
+bool MLX_readMax(void){
+	int16_t toMax;
+	// Read from the TOMax EEPROM address, store value in toMax
+	if (MLX_I2CReadWord(MLX90614_REGISTER_TOMAX, &toMax))
+	{
+		_MLX_rawMax = toMax;
+		return true;
+	}
+	return false;
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+/* This function individually reads the MIN temperature in
+ * the MLX90614's EEPROM:
+ */
+bool MLX_readMin(void){
+	int16_t toMin;
+	// Read from the TOMin EEPROM address, store value in toMax
+	if (MLX_I2CReadWord(MLX90614_REGISTER_TOMIN, &toMin))
+	{
+		_MLX_rawMin = toMin;
+		return true;
+	}
+	return false;
+}
 
 /* calcTemperature converts a raw ADC temperature reading to the
  * set unit.
@@ -446,16 +458,58 @@ float MLX_calcTemperature(int16_t rawTemp){
 	return retTemp;
 }
 
+/* calcRawTemperature converts a set unit temperature to a
+ * raw ADC value:
+ */
+int16_t MLX_calcRawTemp(float calcTemp){
+	int16_t rawTemp; // Value to eventually be returned
 
+	if (_MLX_defaultUnit == TEMP_RAW)
+	{
+		// If unit is set to raw, just return that:
+		rawTemp = (int16_t) calcTemp;
+	}
+	else
+	{
+		float tempFloat;
+		// First convert each temperature to Kelvin:
+		if (_MLX_defaultUnit == TEMP_F)
+		{
+			// Convert from farenheit to Kelvin
+			tempFloat = (calcTemp - 32.0) * 5.0 / 9.0 + 273.15;
+		}
+		else if (_MLX_defaultUnit == TEMP_C)
+		{
+			tempFloat = calcTemp + 273.15;
+		}
+		else if (_MLX_defaultUnit == TEMP_K)
+		{
+			tempFloat = calcTemp;
+		}
+			// Then multiply by 0.02 degK / bit
+		tempFloat *= 50;
+		rawTemp = (int16_t) tempFloat;
+	}
+	return rawTemp;
+}
 
+/* Abstract function to write 16-bits to an address in the MLX90614's
+ * EEPROM
+ */
+bool MLX_writeEEPROM(uint8_t reg, int16_t data){
+	// Clear out EEPROM first:
+		if (MLX_I2CWriteWord(reg, 0) != HAL_OK)
+			return 0; // If the write failed, return 0
+		delay(5); // Delay tErase
 
+		HAL_StatusTypeDef i2cRet = I2CWriteWord(reg, data);
+		delay(5); // Delay tWrite
 
-
-
-
-
-
-
+		if (i2cRet != HAL_OK)
+			return false;
+		else
+			return true;
+}
 
 
 
@@ -502,7 +556,7 @@ bool MLX_I2CReadWord(uint8_t reg, int16_t * dest){
 /* Abstract function to read and write 16-bit values from a RAM
  * or EEPROM address in the MLX90614
  */
-uint8_t MLX_I2CWriteWord(uint8_t reg, int16_t data){
+HAL_StatusTypeDef MLX_I2CWriteWord(uint8_t reg, int16_t data){
 	uint8_t crc;
 	uint8_t lsb = data & 0x00FF;
 	uint8_t msb = (data >> 8);

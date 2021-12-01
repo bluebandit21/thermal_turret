@@ -97,6 +97,26 @@ static void MX_USART2_UART_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+//------------------------CONTACT THERMOMETER DRIVERS--------------------------
+
+float read_temperature_blocking();
+
+/* float read_temperature_blocking()
+ *  Reports temperature read by contact temperature sensor and returns as a float degrees Fahrenheit
+ *  This is a blocking function and will wait several cycles for the ADC to finish converting.
+ */
+float read_temperature_blocking(){
+	  HAL_ADC_Start(&hadc1);//start conversion
+	  HAL_ADC_PollForConversion(&hadc1, 0xFFFFFFFF);
+	  float RAW_COUNT = HAL_ADC_GetValue(&hadc1);
+	  float voltage = RAW_COUNT * 3.3 / 4096;
+	  float corrected_voltage = (voltage * R2 / (R1+R2) ) - 0.5; //Remove DC offset, de scale
+	  float temp_c = corrected_voltage * 100;
+	  float temp_f = temp_c * 1.8  + 32;
+
+	  return temp_f;
+}
+
 //------------------------GIMBAL DRIVERS---------------------------------------
 
 void initialize_gimbal();
@@ -225,17 +245,7 @@ int main(void)
 	  MLX_object_temp = MLX_object();
 	  MLX_ambient_temp = MLX_ambient();
 
-
-
-	  HAL_ADC_Start(&hadc1);//start conversion
-	  HAL_ADC_PollForConversion(&hadc1, 0xFFFFFFFF);
-	  float RAW_COUNT = HAL_ADC_GetValue(&hadc1);
-	  float voltage = RAW_COUNT * 3.3 / 4096;
-	  float corrected_voltage = (voltage * R2 / (R1+R2) ) - 0.5; //Remove DC offset, de scale
-	  float temp_c = corrected_voltage * 100;
-	  float temp_f = temp_c * 1.8  + 32;
-
-	  printf("Temperature is %f F\r\n", temp_f);
+	  printf("Temperature is %f F\r\n", read_temperature_blocking());
 	  HAL_Delay(100);
 	  // HAL_Delay(3200);
   }

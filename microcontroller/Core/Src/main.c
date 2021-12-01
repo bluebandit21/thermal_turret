@@ -60,8 +60,8 @@
 #define SERVO_PITCH_MAX_SAFE_ANGLE_MAX -75
 
 //------------------------TOUCH THERMOMETER CONSTANTS-----------------------------
-#define R1 9.7 //9.7 kOhms
-#define R2 32.3 //32.3 kOhms
+#define R1 32.66  //kOhms
+#define R2 9.866 //kOhms
 
 /* USER CODE END PD */
 
@@ -225,25 +225,17 @@ int main(void)
 	  MLX_object_temp = MLX_object();
 	  MLX_ambient_temp = MLX_ambient();
 
-	  /*
-	  set_gimbal_angles(45, 0);
-	  HAL_ADC_Start(&hadc1);//start conversion
-	  HAL_ADC_PollForConversion(&hadc1, 0xFFFFFFFF);//wait for conversion to finish3290
-	  int ADC_VAL = HAL_ADC_GetValue(&hadc1);
-	  */
 
+
+	  HAL_ADC_Start(&hadc1);//start conversion
+	  HAL_ADC_PollForConversion(&hadc1, 0xFFFFFFFF);
 	  float RAW_COUNT = HAL_ADC_GetValue(&hadc1);
 	  float voltage = RAW_COUNT * 3.3 / 4096;
-	  float corrected_voltage = (voltage * R1 / R2) - 0.5; //Remove DC offset, de scale
+	  float corrected_voltage = (voltage * R2 / (R1+R2) ) - 0.5; //Remove DC offset, de scale
 	  float temp_c = corrected_voltage * 100;
 	  float temp_f = temp_c * 1.8  + 32;
 
-	  static val=0;
-	  val+=1;
-	  val%=10;
-	  float thing = 1.5;
-	  printf("Running %d\r\n", val);
-	  printf("Thing is %f\r\n", thing);
+	  printf("Temperature is %f F\r\n", temp_f);
 	  HAL_Delay(100);
 	  // HAL_Delay(3200);
   }

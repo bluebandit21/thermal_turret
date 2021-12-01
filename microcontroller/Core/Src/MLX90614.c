@@ -318,7 +318,7 @@ void MLX_sleep(){
 
 	HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_MLX_i2cPort, _MLX_deviceAddress, buf, 2, HAL_MAX_DELAY);
 	if (ret != HAL_OK){
-		printf("ERROR: MLX90614: Sleep command failed: %x", ret);
+		printf("ERROR: MLX90614: Sleep command failed: %x\r\n", ret);
 	}
 
 	// Set the SCL pin LOW, and SDA pin HIGH (should be pulled up)
@@ -469,11 +469,11 @@ bool MLX_I2CReadWord(uint8_t reg, int16_t * dest){
 	buf[0] = reg;
 	HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_MLX_i2cPort, _MLX_deviceAddress, buf, 1, HAL_MAX_DELAY);
 	if (ret != HAL_OK){
-		printf("ERROR: MLX90614: MLX_I2CReadWord()-Write: %x", ret);
+		printf("ERROR: MLX90614: MLX_I2CReadWord()-Write: %x\r\n", ret);
 	}
 	ret = HAL_I2C_Master_Receive(_MLX_i2cPort, _MLX_deviceAddress, buf, 3, HAL_MAX_DELAY);
 	if (ret != HAL_OK){
-		printf("ERROR: MLX90614: MLX_I2CReadWord()-Read: %x", ret);
+		printf("ERROR: MLX90614: MLX_I2CReadWord()-Read: %x\r\n", ret);
 	}
 
 
@@ -519,7 +519,7 @@ uint8_t MLX_I2CWriteWord(uint8_t reg, int16_t data){
 	buf[3] = crc;
 	HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_MLX_i2cPort, _MLX_deviceAddress, buf, 4, HAL_MAX_DELAY);
 	if (ret != HAL_OK){
-		printf("ERROR: MLX90614: MLX_I2CWriteWord(): %x", ret);
+		printf("ERROR: MLX90614: MLX_I2CWriteWord(): %x\r\n", ret);
 	}
 
 	return ret;

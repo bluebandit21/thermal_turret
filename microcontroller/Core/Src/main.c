@@ -200,8 +200,7 @@ static void MX_USART2_UART_Init(void);
 #define I2C1_SDA_Pin GPIO_PIN_7
 #define I2C1_SDA_GPIO_Port GPIOB
 
-I2C_Module I2C{ &hi2c1, I2C1_SDA_Pin, I2C1_SDA_GPIO_Port, I2C1_SCL_Pin, I2C1_SCL_GPIO_Port};
-I2C_ClearBusyFlagErratum(I2C);
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -328,6 +327,9 @@ int main(void)
   MX_USART2_UART_Init();
 
   /* USER CODE BEGIN 2 */
+
+  I2C_Module I2C = { &hi2c1, I2C1_SDA_Pin, I2C1_SDA_GPIO_Port, I2C1_SCL_Pin, I2C1_SCL_GPIO_Port};
+  I2C_ClearBusyFlagErratum(&I2C);
 
   float MLX_object_temp, MLX_ambient_temp;
   bool MLX_OK;

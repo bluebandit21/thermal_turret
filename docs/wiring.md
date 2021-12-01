@@ -15,6 +15,5 @@ With flat side of device oriented up and bottom of device (pin side) pointed tow
 Left leg connected to voltage supply (3.3v or 5v both fine, operating range is 2.7 - 5.5 volts)
 Right leg connected to ground
 0.1 uF capacitor (labelled "BC 104") between high and low pins
-Middle pin connected to 46.2 kOhm resistor between it and data wire.
-Data wire conected to 9.7 kOhm resistor between it and ground
-Data wire connected to pin A1 (fifth pin from the bottom on the middle row of pins on the left (oriented with ST logo on bottom))
+
+TODO: // describe op-amp circuit coming off of data pin

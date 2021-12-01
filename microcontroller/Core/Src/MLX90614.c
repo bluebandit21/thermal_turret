@@ -52,6 +52,8 @@ void MLX_IRTherm()
 {
 	// Set initial values for all private member variables
 	_MLX_deviceAddress = 0;
+	_MLX_deviceAddressW = 0;
+	_MLX_deviceAddressR = 0;
 	_MLX_defaultUnit = TEMP_C;
 	_MLX_rawObject = 0;
 	_MLX_rawAmbient = 0;
@@ -66,6 +68,8 @@ void MLX_IRTherm()
  */
 bool MLX_begin(I2C_HandleTypeDef* i2cP){
 	_MLX_deviceAddress = MLX90614_DEFAULT_ADDRESS; // Store the address in a private member
+	_MLX_deviceAddressW = MLX90614_DEFAULT_ADDRESS << 1;
+	_MLX_deviceAddressR = (MLX90614_DEFAULT_ADDRESS << 1) | 1;
 	_MLX_i2cPort = i2cP;
 	_MLX_defaultUnit = TEMP_RAW;
 	return (MLX_isConnected());
@@ -78,8 +82,9 @@ bool MLX_begin(I2C_HandleTypeDef* i2cP){
  * uint8_t address - The custom Address to be used for the MLX90614
  */
 bool MLX_beginCAddr(I2C_HandleTypeDef* i2cP, uint8_t address){
-
 	_MLX_deviceAddress = address;
+	_MLX_deviceAddressW = address << 1;
+	_MLX_deviceAddressR = (address << 1) | 1;
 	_MLX_i2cPort = i2cP;
 	_MLX_defaultUnit = TEMP_RAW;
 	return (MLX_isConnected());
@@ -91,7 +96,7 @@ bool MLX_beginCAddr(I2C_HandleTypeDef* i2cP, uint8_t address){
 bool MLX_isConnected(){
 	uint8_t buf[1];
 	buf[0] = MLX90614_REGISTER_ADDRESS;
-	HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_MLX_i2cPort, _MLX_deviceAddress, buf, 1, HAL_MAX_DELAY);
+	HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_MLX_i2cPort, _MLX_deviceAddressW, buf, 1, HAL_MAX_DELAY);
 	if (ret != HAL_OK){
 		return false;
 	}
@@ -316,7 +321,7 @@ void MLX_sleep(){
 	buf[0] = MLX90614_REGISTER_SLEEP;
 	buf[1] = crc;
 
-	HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_MLX_i2cPort, _MLX_deviceAddress, buf, 2, HAL_MAX_DELAY);
+	HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_MLX_i2cPort, _MLX_deviceAddressW, buf, 2, HAL_MAX_DELAY);
 	if (ret != HAL_OK){
 		printf("ERROR: MLX90614: Sleep command failed: %x\r\n", ret);
 	}
@@ -521,11 +526,11 @@ bool MLX_writeEEPROM(uint8_t reg, int16_t data){
 bool MLX_I2CReadWord(uint8_t reg, int16_t * dest){
 	uint8_t buf[3];
 	buf[0] = reg;
-	HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_MLX_i2cPort, _MLX_deviceAddress, buf, 1, HAL_MAX_DELAY);
+	HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_MLX_i2cPort, _MLX_deviceAddressW, buf, 1, HAL_MAX_DELAY);
 	if (ret != HAL_OK){
 		printf("ERROR: MLX90614: MLX_I2CReadWord()-Write: %x\r\n", ret);
 	}
-	ret = HAL_I2C_Master_Receive(_MLX_i2cPort, _MLX_deviceAddress, buf, 3, HAL_MAX_DELAY);
+	ret = HAL_I2C_Master_Receive(_MLX_i2cPort, _MLX_deviceAddressR, buf, 3, HAL_MAX_DELAY);
 	if (ret != HAL_OK){
 		printf("ERROR: MLX90614: MLX_I2CReadWord()-Read: %x\r\n", ret);
 	}
@@ -571,7 +576,7 @@ HAL_StatusTypeDef MLX_I2CWriteWord(uint8_t reg, int16_t data){
 	buf[1] = lsb;
 	buf[2] = msb;
 	buf[3] = crc;
-	HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_MLX_i2cPort, _MLX_deviceAddress, buf, 4, HAL_MAX_DELAY);
+	HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_MLX_i2cPort, _MLX_deviceAddressW, buf, 4, HAL_MAX_DELAY);
 	if (ret != HAL_OK){
 		printf("ERROR: MLX90614: MLX_I2CWriteWord(): %x\r\n", ret);
 	}

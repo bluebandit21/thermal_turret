@@ -79,7 +79,7 @@ typedef enum {
 	TEMP_F
 } temperature_units;
 
-uint8_t _MLX_deviceAddress; // MLX90614's 7-bit I2C address
+uint8_t _MLX_deviceAddress, _MLX_deviceAddressW,_MLX_deviceAddressR; // MLX90614's 7-bit I2C address
 I2C_HandleTypeDef* _MLX_i2cPort;
 temperature_units _MLX_defaultUnit; // Keeps track of configured temperature unit
 

@@ -163,8 +163,21 @@ void I2C_ClearBusyFlagErratum(struct I2C_Module* i2c)
 #define SERVO_PITCH_MAX_SAFE_ANGLE_MAX -75
 
 //------------------------TOUCH THERMOMETER CONSTANTS-----------------------------
-#define R1 32.66  //kOhms
-#define R2 9.866 //kOhms
+const float R1 = 32.66;  //kOhms
+const float R2 = 9.866; //kOhms
+
+//---------------------------VISION INTERFACE CONSTANTS---------------------------
+
+const GPIO_TypeDef* VISION_LEFT_BANK = GPIOB;
+const GPIO_TypeDef* VISION_RIGHT_BANK = GPIOB;
+const GPIO_TypeDef* VISION_UP_BANK = GPIOB;
+const GPIO_TypeDef* VISION_DOWN_BANK = GPIOB;
+const uint16_t VISION_LEFT_PIN = GPIO_PIN_3;
+const uint16_t VISION_RIGHT_PIN = GPIO_PIN_4;
+const uint16_t VISION_UP_PIN = GPIO_PIN_5;
+const uint16_t VISION_DOWN_PIN = GPIO_PIN_10;
+
+
 
 /* USER CODE END PD */
 
@@ -254,7 +267,7 @@ void initialize_gimbal(){
  *   it is not made and -1 is returned as an error status.
  */
 int set_gimbal_angles(int yaw, int pitch){
-	if(abs(yaw) > SERVO_YAW_MAX_ANGLE \
+	if((yaw > SERVO_YAW_MAX_ANGLE) || (yaw < -SERVO_YAW_MAX_ANGLE)\
 			|| (pitch > SERVO_PITCH_MAX_SAFE_ANGLE_MIN) || (pitch < SERVO_PITCH_MAX_SAFE_ANGLE_MAX)){
 		//Refuse to do this move; it'd cause bad things to occur physically
 		//TODO: Add logging here
@@ -270,7 +283,25 @@ int set_gimbal_angles(int yaw, int pitch){
 }
 
 
+//-----------------------VISION INTERFACE DRIVERS--------------------------------------
 
+GPIO_PinState target_left();
+GPIO_PinState target_right();
+GPIO_PinState target_up();
+GPIO_PinState target_down();
+
+GPIO_PinState target_left(){
+	return HAL_GPIO_ReadPin(VISION_LEFT_BANK, VISION_LEFT_PIN);
+}
+GPIO_PinState target_right(){
+	return HAL_GPIO_ReadPin(VISION_RIGHT_BANK, VISION_RIGHT_PIN);
+}
+GPIO_PinState target_up(){
+	return HAL_GPIO_ReadPin(VISION_UP_BANK, VISION_UP_PIN);
+}
+GPIO_PinState target_down(){
+	return HAL_GPIO_ReadPin(VISION_DOWN_BANK, VISION_DOWN_PIN);
+}
 
 
 
@@ -354,41 +385,49 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 
   int yaw,pitch = 0;
-  while (1)
-  {
+  while (1) {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
 
 
 
-	if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_3)==1){
-		if(yaw < SERVO_YAW_MAX_ANGLE){
+	  if(target_left()){
+		  printf("Targeting left\r\n");
+		  if(yaw < SERVO_YAW_MAX_ANGLE){
 			yaw = yaw + 1;
-		}
-	}else if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_5)==1){
-		if(yaw > -SERVO_YAW_MAX_ANGLE){
-			yaw = yaw - 1;
-	  	}
-	}
-	if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_4)==1){
-		if(pitch > SERVO_PITCH_MAX_SAFE_ANGLE_MAX){
-			pitch = pitch - 1;
-		}
-	}else if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_10)==1){
-	  	 if(pitch < SERVO_PITCH_MAX_SAFE_ANGLE_MIN){
-	  	     pitch = pitch + 1;
-	  	 }
+		  }
+	  }
+	  if(target_right()){
+		  printf("Targeting right\r\n");
+		  if(yaw > -SERVO_YAW_MAX_ANGLE){
+			  yaw = yaw - 1;
+		  }
+	  }
+	  if(target_up()){
+		  printf("Targeting up\r\n");
+		  if(pitch > SERVO_PITCH_MAX_SAFE_ANGLE_MAX){
+			  pitch = pitch - 1;
+		  }
+	  }
+	  if(target_down()){
+		  printf("Targeting down\r\n");
+		  if(pitch < SERVO_PITCH_MAX_SAFE_ANGLE_MIN){
+			  pitch = pitch + 1;
+		  }
 	  }
 
-	set_gimbal_angles(yaw, pitch);
+	  if(!(target_left() ||target_right() || target_down() || target_up())){
+		  printf("Aimed at forehead!\r\n");
+	  }
+
+	  set_gimbal_angles(yaw, pitch);
 	  MLX_read();
 	  MLX_object_temp = MLX_object();
 	  MLX_ambient_temp = MLX_ambient();
 
 	  printf("Temperature is %f F\r\n", read_temperature_blocking());
-	  HAL_Delay(100);
-	  // HAL_Delay(3200);
+	  HAL_Delay(50);
   }
   /* USER CODE END 3 */
 }

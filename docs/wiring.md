@@ -16,4 +16,6 @@ Left leg connected to voltage supply (3.3v or 5v both fine, operating range is 2
 Right leg connected to ground
 0.1 uF capacitor (labelled "BC 104") between high and low pins
 
+Output pin of op-amp circuit connected to pin A1 (fifth pin from the bottom on the middle row of pins on the left (oriented with ST logo on bottom))
+
 TODO: // describe op-amp circuit coming off of data pin

@@ -29,3 +29,8 @@ Target right wire connected to pin PB4 (Sixth pin from bottom on middle row of p
 Target up wire connected to pin PB5    (Fifth pin from bottom on middle row of pins on the right (oriented with ST logo on bottom)), other end connected to Jetson Nano pin //TODO: ADD ME
 
 Target down wire connected to pin PB10 (Seventh pin from bottom on middle row of pins on the right (oriented with ST logo on bottom)), other end connected to Jetson Nano pin //TODO: ADD ME
+
+
+### **Logic Analyzer:**
+Yellow wire connected to CH2 is SDA, grey wire connected to CH3 is SCL
+(If these are set up properly, logic analyzer very nicely properly logs output for us)

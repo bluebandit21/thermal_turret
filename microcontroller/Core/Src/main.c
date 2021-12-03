@@ -168,14 +168,14 @@ const float R2 = 9.866; //kOhms
 
 //---------------------------VISION INTERFACE CONSTANTS---------------------------
 
-const GPIO_TypeDef* VISION_LEFT_BANK = GPIOB;
-const GPIO_TypeDef* VISION_RIGHT_BANK = GPIOB;
-const GPIO_TypeDef* VISION_UP_BANK = GPIOB;
-const GPIO_TypeDef* VISION_DOWN_BANK = GPIOB;
-const uint16_t VISION_LEFT_PIN = GPIO_PIN_3;
-const uint16_t VISION_RIGHT_PIN = GPIO_PIN_4;
-const uint16_t VISION_UP_PIN = GPIO_PIN_5;
-const uint16_t VISION_DOWN_PIN = GPIO_PIN_10;
+GPIO_TypeDef* VISION_LEFT_BANK = GPIOB;
+GPIO_TypeDef* VISION_RIGHT_BANK = GPIOB;
+GPIO_TypeDef* VISION_UP_BANK = GPIOB;
+GPIO_TypeDef* VISION_DOWN_BANK = GPIOB;
+uint16_t VISION_LEFT_PIN = GPIO_PIN_3;
+uint16_t VISION_RIGHT_PIN = GPIO_PIN_4;
+uint16_t VISION_UP_PIN = GPIO_PIN_5;
+uint16_t VISION_DOWN_PIN = GPIO_PIN_10;
 
 
 
@@ -389,7 +389,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-
+	  I2C_ClearBusyFlagErratum(&I2C);
 
 
 	  if(target_left()){
@@ -425,6 +425,7 @@ int main(void)
 	  MLX_read();
 	  MLX_object_temp = MLX_object();
 	  MLX_ambient_temp = MLX_ambient();
+	  printf("MLX Object Temp is %f F\r\n", MLX_object_temp);
 
 	  printf("Temperature is %f F\r\n", read_temperature_blocking());
 	  HAL_Delay(50);

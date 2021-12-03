@@ -372,25 +372,36 @@ int main(void)
   HAL_StatusTypeDef ret;
   HAL_I2C_StateTypeDef state;
   initialize_gimbal();
-  //OpenLCD_begin(&hi2c1);
+
+
+
+  OpenLCD_begin(&hi2c1);
+  OpenLCD_setFastBacklightrgb(40,0,255);
+  OpenLCD_setContrast(0);
+  OpenLCD_setCursor(0, 0);
+
+
+  /*
   MLX_IRTherm();
   MLX_OK = MLX_begin(&hi2c1);
   if (!MLX_OK){
 	  printf("ERROR: MLX90614: MLX_begin(): Not Connected");
   }
   MLX_setUnit(TEMP_F);
+  */
+
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-
+  I2C_ClearBusyFlagErratum(&I2C);
   int yaw,pitch = 0;
   while (1) {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
 	  I2C_ClearBusyFlagErratum(&I2C);
-
 
 	  if(target_left()){
 		  printf("Targeting left\r\n");
@@ -422,10 +433,19 @@ int main(void)
 	  }
 
 	  set_gimbal_angles(yaw, pitch);
+	  /*
 	  MLX_read();
 	  MLX_object_temp = MLX_object();
 	  MLX_ambient_temp = MLX_ambient();
-	  printf("MLX Object Temp is %f F\r\n", MLX_object_temp);
+	  printf("MLX Object Temp is %f F\r\n", MLX_object_temp);*/
+
+
+
+	  OpenLCD_writebuff(":D :D :D :D",11 );
+
+
+
+
 
 	  printf("Temperature is %f F\r\n", read_temperature_blocking());
 	  HAL_Delay(50);

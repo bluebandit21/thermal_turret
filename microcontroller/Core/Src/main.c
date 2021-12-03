@@ -321,11 +321,10 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_I2C1_Init();
   MX_TIM1_Init();
   MX_ADC1_Init();
-  MX_I2C1_Init();
   MX_USART2_UART_Init();
-
   /* USER CODE BEGIN 2 */
 
   I2C_Module I2C;
@@ -353,12 +352,36 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
+  int yaw,pitch = 0;
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
 
+
+
+	if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_3)==1){
+		if(yaw < SERVO_YAW_MAX_ANGLE){
+			yaw = yaw + 1;
+		}
+	}else if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_5)==1){
+		if(yaw > -SERVO_YAW_MAX_ANGLE){
+			yaw = yaw - 1;
+	  	}
+	}
+	if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_4)==1){
+		if(pitch > SERVO_PITCH_MAX_SAFE_ANGLE_MAX){
+			pitch = pitch - 1;
+		}
+	}else if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_10)==1){
+	  	 if(pitch < SERVO_PITCH_MAX_SAFE_ANGLE_MIN){
+	  	     pitch = pitch + 1;
+	  	 }
+	  }
+
+	set_gimbal_angles(yaw, pitch);
 	  MLX_read();
 	  MLX_object_temp = MLX_object();
 	  MLX_ambient_temp = MLX_ambient();
@@ -612,10 +635,17 @@ static void MX_USART2_UART_Init(void)
   */
 static void MX_GPIO_Init(void)
 {
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+
+  /*Configure GPIO pins : PB10 PB3 PB4 PB5 */
+  GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_3|GPIO_PIN_4|GPIO_PIN_5;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
 }
 

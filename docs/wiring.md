@@ -19,3 +19,13 @@ Right leg connected to ground
 Output pin of op-amp circuit connected to pin A1 (fifth pin from the bottom on the middle row of pins on the left (oriented with ST logo on bottom))
 
 TODO: // describe op-amp circuit coming off of data pin
+
+
+### **Vision interface:**
+Target left wire connected to pin PB3  (Fourth pin from bottom on middle row of pins on the right (oriented with ST logo on bottom)), other end connected to Jetson Nano pin //TODO: ADD ME
+
+Target right wire connected to pin PB4 (Sixth pin from bottom on middle row of pins on the right (oriented with ST logo on bottom)), other end connected to Jetson Nano pin //TODO: ADD ME
+
+Target up wire connected to pin PB5    (Fifth pin from bottom on middle row of pins on the right (oriented with ST logo on bottom)), other end connected to Jetson Nano pin //TODO: ADD ME
+
+Target down wire connected to pin PB10 (Seventh pin from bottom on middle row of pins on the right (oriented with ST logo on bottom)), other end connected to Jetson Nano pin //TODO: ADD ME

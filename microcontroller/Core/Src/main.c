@@ -33,6 +33,8 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
+
+//------------------------MISC TYPES------------------------------------------
 typedef struct I2C_Module
 {
   I2C_HandleTypeDef   instance;
@@ -42,100 +44,7 @@ typedef struct I2C_Module
   GPIO_TypeDef*       sclPort;
 }I2C_Module;
 
-void I2C_ClearBusyFlagErratum(struct I2C_Module* i2c)
-{
-  GPIO_InitTypeDef GPIO_InitStructure;
 
-  // 1. Clear PE bit.
-  i2c->instance.Instance->CR1 &= ~(0x0001);
-
-  //  2. Configure the SCL and SDA I/Os as General Purpose Output Open-Drain, High level (Write 1 to GPIOx_ODR).
-  GPIO_InitStructure.Mode         = GPIO_MODE_OUTPUT_OD;
-  GPIO_InitStructure.Alternate    = GPIO_AF4_I2C1;
-  GPIO_InitStructure.Pull         = GPIO_PULLUP;
-  GPIO_InitStructure.Speed        = GPIO_SPEED_FREQ_HIGH;
-
-  GPIO_InitStructure.Pin          = i2c->sclPin;
-  HAL_GPIO_Init(i2c->sclPort, &GPIO_InitStructure);
-  HAL_GPIO_WritePin(i2c->sclPort, i2c->sclPin, GPIO_PIN_SET);
-
-  GPIO_InitStructure.Pin          = i2c->sdaPin;
-  HAL_GPIO_Init(i2c->sdaPort, &GPIO_InitStructure);
-  HAL_GPIO_WritePin(i2c->sdaPort, i2c->sdaPin, GPIO_PIN_SET);
-
-  // 3. Check SCL and SDA High level in GPIOx_IDR.
-  while (GPIO_PIN_SET != HAL_GPIO_ReadPin(i2c->sclPort, i2c->sclPin))
-  {
-    asm("nop");
-  }
-
-  while (GPIO_PIN_SET != HAL_GPIO_ReadPin(i2c->sdaPort, i2c->sdaPin))
-  {
-    asm("nop");
-  }
-
-  // 4. Configure the SDA I/O as General Purpose Output Open-Drain, Low level (Write 0 to GPIOx_ODR).
-  HAL_GPIO_WritePin(i2c->sdaPort, i2c->sdaPin, GPIO_PIN_RESET);
-
-  //  5. Check SDA Low level in GPIOx_IDR.
-  while (GPIO_PIN_RESET != HAL_GPIO_ReadPin(i2c->sdaPort, i2c->sdaPin))
-  {
-    asm("nop");
-  }
-
-  // 6. Configure the SCL I/O as General Purpose Output Open-Drain, Low level (Write 0 to GPIOx_ODR).
-  HAL_GPIO_WritePin(i2c->sclPort, i2c->sclPin, GPIO_PIN_RESET);
-
-  //  7. Check SCL Low level in GPIOx_IDR.
-  while (GPIO_PIN_RESET != HAL_GPIO_ReadPin(i2c->sclPort, i2c->sclPin))
-  {
-    asm("nop");
-  }
-
-  // 8. Configure the SCL I/O as General Purpose Output Open-Drain, High level (Write 1 to GPIOx_ODR).
-  HAL_GPIO_WritePin(i2c->sclPort, i2c->sclPin, GPIO_PIN_SET);
-
-  // 9. Check SCL High level in GPIOx_IDR.
-  while (GPIO_PIN_SET != HAL_GPIO_ReadPin(i2c->sclPort, i2c->sclPin))
-  {
-    asm("nop");
-  }
-
-  // 10. Configure the SDA I/O as General Purpose Output Open-Drain , High level (Write 1 to GPIOx_ODR).
-  HAL_GPIO_WritePin(i2c->sdaPort, i2c->sdaPin, GPIO_PIN_SET);
-
-  // 11. Check SDA High level in GPIOx_IDR.
-  while (GPIO_PIN_SET != HAL_GPIO_ReadPin(i2c->sdaPort, i2c->sdaPin))
-  {
-    asm("nop");
-  }
-
-  // 12. Configure the SCL and SDA I/Os as Alternate function Open-Drain.
-  GPIO_InitStructure.Mode         = GPIO_MODE_AF_OD;
-  GPIO_InitStructure.Alternate    = GPIO_AF4_I2C1;
-
-  GPIO_InitStructure.Pin          = i2c->sclPin;
-  HAL_GPIO_Init(i2c->sclPort, &GPIO_InitStructure);
-
-  GPIO_InitStructure.Pin          = i2c->sdaPin;
-  HAL_GPIO_Init(i2c->sdaPort, &GPIO_InitStructure);
-
-  // 13. Set SWRST bit in I2Cx_CR1 register.
-  i2c->instance.Instance->CR1 |= 0x8000;
-
-  asm("nop");
-
-  // 14. Clear SWRST bit in I2Cx_CR1 register.
-  i2c->instance.Instance->CR1 &= ~0x8000;
-
-  asm("nop");
-
-  // 15. Enable the I2C peripheral by setting the PE bit in I2Cx_CR1 register
-  i2c->instance.Instance->CR1 |= 0x0001;
-
-  // Call initialization function.
-  HAL_I2C_Init(&(i2c->instance));
-}
 
 /* USER CODE END PTD */
 
@@ -303,7 +212,127 @@ GPIO_PinState target_down(){
 	return HAL_GPIO_ReadPin(VISION_DOWN_BANK, VISION_DOWN_PIN);
 }
 
+//-------------------------MISC------------------------------------------------------
+void clear_i2c_busy();
+void I2C_ClearBusyFlagErratum(struct I2C_Module* i2c);
 
+
+/* void I2C_ClearBusyFlagErratum(struct I2C_Module* i2c)
+ * Does magic to reset the HAL_Busy I2C state when it gets stuck there sometimes.
+ * Sourced from https://electronics.stackexchange.com/questions/267972/i2c-busy-flag-strange-behaviour
+ */
+void I2C_ClearBusyFlagErratum(struct I2C_Module* i2c)
+{
+  GPIO_InitTypeDef GPIO_InitStructure;
+
+  // 1. Clear PE bit.
+  i2c->instance.Instance->CR1 &= ~(0x0001);
+
+  //  2. Configure the SCL and SDA I/Os as General Purpose Output Open-Drain, High level (Write 1 to GPIOx_ODR).
+  GPIO_InitStructure.Mode         = GPIO_MODE_OUTPUT_OD;
+  GPIO_InitStructure.Alternate    = GPIO_AF4_I2C1;
+  GPIO_InitStructure.Pull         = GPIO_PULLUP;
+  GPIO_InitStructure.Speed        = GPIO_SPEED_FREQ_HIGH;
+
+  GPIO_InitStructure.Pin          = i2c->sclPin;
+  HAL_GPIO_Init(i2c->sclPort, &GPIO_InitStructure);
+  HAL_GPIO_WritePin(i2c->sclPort, i2c->sclPin, GPIO_PIN_SET);
+
+  GPIO_InitStructure.Pin          = i2c->sdaPin;
+  HAL_GPIO_Init(i2c->sdaPort, &GPIO_InitStructure);
+  HAL_GPIO_WritePin(i2c->sdaPort, i2c->sdaPin, GPIO_PIN_SET);
+
+  // 3. Check SCL and SDA High level in GPIOx_IDR.
+  while (GPIO_PIN_SET != HAL_GPIO_ReadPin(i2c->sclPort, i2c->sclPin))
+  {
+    asm("nop");
+  }
+
+  while (GPIO_PIN_SET != HAL_GPIO_ReadPin(i2c->sdaPort, i2c->sdaPin))
+  {
+    asm("nop");
+  }
+
+  // 4. Configure the SDA I/O as General Purpose Output Open-Drain, Low level (Write 0 to GPIOx_ODR).
+  HAL_GPIO_WritePin(i2c->sdaPort, i2c->sdaPin, GPIO_PIN_RESET);
+
+  //  5. Check SDA Low level in GPIOx_IDR.
+  while (GPIO_PIN_RESET != HAL_GPIO_ReadPin(i2c->sdaPort, i2c->sdaPin))
+  {
+    asm("nop");
+  }
+
+  // 6. Configure the SCL I/O as General Purpose Output Open-Drain, Low level (Write 0 to GPIOx_ODR).
+  HAL_GPIO_WritePin(i2c->sclPort, i2c->sclPin, GPIO_PIN_RESET);
+
+  //  7. Check SCL Low level in GPIOx_IDR.
+  while (GPIO_PIN_RESET != HAL_GPIO_ReadPin(i2c->sclPort, i2c->sclPin))
+  {
+    asm("nop");
+  }
+
+  // 8. Configure the SCL I/O as General Purpose Output Open-Drain, High level (Write 1 to GPIOx_ODR).
+  HAL_GPIO_WritePin(i2c->sclPort, i2c->sclPin, GPIO_PIN_SET);
+
+  // 9. Check SCL High level in GPIOx_IDR.
+  while (GPIO_PIN_SET != HAL_GPIO_ReadPin(i2c->sclPort, i2c->sclPin))
+  {
+    asm("nop");
+  }
+
+  // 10. Configure the SDA I/O as General Purpose Output Open-Drain , High level (Write 1 to GPIOx_ODR).
+  HAL_GPIO_WritePin(i2c->sdaPort, i2c->sdaPin, GPIO_PIN_SET);
+
+  // 11. Check SDA High level in GPIOx_IDR.
+  while (GPIO_PIN_SET != HAL_GPIO_ReadPin(i2c->sdaPort, i2c->sdaPin))
+  {
+    asm("nop");
+  }
+
+  // 12. Configure the SCL and SDA I/Os as Alternate function Open-Drain.
+  GPIO_InitStructure.Mode         = GPIO_MODE_AF_OD;
+  GPIO_InitStructure.Alternate    = GPIO_AF4_I2C1;
+
+  GPIO_InitStructure.Pin          = i2c->sclPin;
+  HAL_GPIO_Init(i2c->sclPort, &GPIO_InitStructure);
+
+  GPIO_InitStructure.Pin          = i2c->sdaPin;
+  HAL_GPIO_Init(i2c->sdaPort, &GPIO_InitStructure);
+
+  // 13. Set SWRST bit in I2Cx_CR1 register.
+  i2c->instance.Instance->CR1 |= 0x8000;
+
+  asm("nop");
+
+  // 14. Clear SWRST bit in I2Cx_CR1 register.
+  i2c->instance.Instance->CR1 &= ~0x8000;
+
+  asm("nop");
+
+  // 15. Enable the I2C peripheral by setting the PE bit in I2Cx_CR1 register
+  i2c->instance.Instance->CR1 |= 0x0001;
+
+  // Call initialization function.
+  HAL_I2C_Init(&(i2c->instance));
+}
+
+
+
+/* void clear_i2c_busy()
+ *  Sometimes the HAL I2C implementation randomly gets stuck in HAL_BUSY
+ *  This fixes it. It is hacky and awful, but so is the HAL library apparently.
+ */
+void clear_i2c_busy(){
+	//This is a horrible hack and shouldn't be neccesary. Yet, it is.
+	I2C_Module I2C;
+	I2C.instance = hi2c1;
+	I2C.sclPin = I2C1_SCL_Pin;
+	I2C.sclPort = I2C1_SCL_GPIO_Port;
+	I2C.sdaPin = I2C1_SDA_Pin;
+	I2C.sdaPort = I2C1_SDA_GPIO_Port;
+
+	I2C_ClearBusyFlagErratum(&I2C);
+}
 
 /* USER CODE END 0 */
 
@@ -325,12 +354,12 @@ int main(void)
   /* USER CODE BEGIN Init */
 
 
-  // 5 inputs from Jetson Nano
+  // 4 inputs from Jetson Nano
   //- Up
   //- Down
   //- Left
   //- Right
-  //- Laser
+  //If none are high, laser is aimed properly.
 
   // 2 PWM Outputs
 
@@ -358,14 +387,7 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
-  I2C_Module I2C;
-  I2C.instance = hi2c1;
-  I2C.sclPin = I2C1_SCL_Pin;
-  I2C.sclPort = I2C1_SCL_GPIO_Port;
-  I2C.sdaPin = I2C1_SDA_Pin;
-  I2C.sdaPort = I2C1_SDA_GPIO_Port;
 
-  I2C_ClearBusyFlagErratum(&I2C);
 
   float MLX_object_temp, MLX_ambient_temp;
   bool MLX_OK;
@@ -373,12 +395,13 @@ int main(void)
   HAL_I2C_StateTypeDef state;
   initialize_gimbal();
 
-
+  clear_i2c_busy();
 
   OpenLCD_begin(&hi2c1);
   OpenLCD_setFastBacklightrgb(40,0,255);
   OpenLCD_setContrast(0);
   OpenLCD_setCursor(0, 0);
+  OpenLCD_writebuff(":D :D :D :D",11 );
 
 
   /*
@@ -395,13 +418,13 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  I2C_ClearBusyFlagErratum(&I2C);
+  clear_i2c_busy();
   int yaw,pitch = 0;
   while (1) {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  I2C_ClearBusyFlagErratum(&I2C);
+	  clear_i2c_busy();
 
 	  if(target_left()){
 		  printf("Targeting left\r\n");
@@ -432,6 +455,7 @@ int main(void)
 		  printf("Aimed at forehead!\r\n");
 	  }
 
+	  printf("Attempting move to %d,%d\r\n", yaw, pitch);
 	  set_gimbal_angles(yaw, pitch);
 	  /*
 	  MLX_read();
@@ -441,14 +465,14 @@ int main(void)
 
 
 
-	  OpenLCD_writebuff(":D :D :D :D",11 );
+
 
 
 
 
 
 	  printf("Temperature is %f F\r\n", read_temperature_blocking());
-	  HAL_Delay(50);
+	  HAL_Delay(200);
   }
   /* USER CODE END 3 */
 }

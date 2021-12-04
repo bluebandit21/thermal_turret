@@ -525,15 +525,11 @@ bool MLX_writeEEPROM(uint8_t reg, int16_t data){
  */
 bool MLX_I2CReadWord(uint8_t reg, int16_t * dest){
 	uint8_t buf[3];
-	buf[0] = reg;
-	HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(_MLX_i2cPort, _MLX_deviceAddressW, buf, 1, HAL_MAX_DELAY);
+	HAL_StatusTypeDef ret = HAL_I2C_Mem_Read(_MLX_i2cPort, _MLX_deviceAddressW,reg, 1, buf,3, HAL_MAX_DELAY);
 	if (ret != HAL_OK){
 		printf("ERROR: MLX90614: MLX_I2CReadWord()-Write: %x\r\n", ret);
 	}
-	ret = HAL_I2C_Master_Receive(_MLX_i2cPort, _MLX_deviceAddressR, buf, 3, HAL_MAX_DELAY);
-	if (ret != HAL_OK){
-		printf("ERROR: MLX90614: MLX_I2CReadWord()-Read: %x\r\n", ret);
-	}
+
 
 
 	// MIGHT READ BACKWARDS

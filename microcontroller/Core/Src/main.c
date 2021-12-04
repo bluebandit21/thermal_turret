@@ -388,37 +388,39 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
 
-
-  float MLX_object_temp, MLX_ambient_temp;
-  bool MLX_OK;
-  HAL_StatusTypeDef ret;
-  HAL_I2C_StateTypeDef state;
   initialize_gimbal();
 
   clear_i2c_busy();
 
+  /*
   OpenLCD_begin(&hi2c1);
   OpenLCD_setFastBacklightrgb(40,0,255);
   OpenLCD_setContrast(0);
   OpenLCD_setCursor(0, 0);
   OpenLCD_writebuff(":D :D :D :D",11 );
+  */
 
 
-  /*
   MLX_IRTherm();
-  MLX_OK = MLX_begin(&hi2c1);
+  bool MLX_OK = MLX_begin(&hi2c1);
   if (!MLX_OK){
 	  printf("ERROR: MLX90614: MLX_begin(): Not Connected");
   }
   MLX_setUnit(TEMP_F);
-  */
+  /*
+   * MLX_IRTherm();
+   * MLX_begin(&hi2c1);
+   * MLX_setUnit(TEMP_F);
+   * MLX_read();
+   * MLX_Object();
+   * MLX_ambient();
+   */
 
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  clear_i2c_busy();
   int yaw,pitch = 0;
   while (1) {
     /* USER CODE END WHILE */
@@ -457,11 +459,11 @@ int main(void)
 
 	  printf("Attempting move to %d,%d\r\n", yaw, pitch);
 	  set_gimbal_angles(yaw, pitch);
-	  /*
+
 	  MLX_read();
-	  MLX_object_temp = MLX_object();
-	  MLX_ambient_temp = MLX_ambient();
-	  printf("MLX Object Temp is %f F\r\n", MLX_object_temp);*/
+	  float MLX_object_temp = MLX_object();
+	  float MLX_ambient_temp = MLX_ambient();
+	  printf("MLX Object Temp is %f F\r\n", MLX_object_temp);
 
 
 

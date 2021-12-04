@@ -26,7 +26,7 @@ SparkFun IR Thermometer Evaluation Board - MLX90614
 #include <SerLCD.h> //Click here to get the library: http://librarymanager/All#SparkFun_SerLCD
 
 
-//SerLCD lcd; // Initialize the library with default I2C address 0x72
+  SerLCD lcd; // Initialize the library with default I2C address 0x72
   IRTherm therm; // Create an IRTherm object to interact with throughout
 
 void setup() 
@@ -41,19 +41,19 @@ void setup()
   Serial.println("Qwiic IR Thermometer did acknowledge.");
   
   therm.setUnit(TEMP_F); // Set the library's units to Farenheit
-  // Alternatively, TEMP_F can be replaced with TEMP_C for Celsius or
-  // TEMP_K for Kelvin.
+                         //  Alternatively, TEMP_F can be replaced with TEMP_C for Celsius or
+                         //  TEMP_K for Kelvin.
   
   pinMode(LED_BUILTIN, OUTPUT); // LED pin as output
 
   //LCD
-//  lcd.begin(Wire); //Set up the LCD for I2C communication
+  lcd.begin(Wire); //Set up the LCD for I2C communication
 
-//  lcd.setBacklight(255, 255, 255); //Set backlight to bright white
-//  lcd.setContrast(0); //Set contrast. Lower to 0 for higher contrast.
+  lcd.setBacklight(255, 255, 255); //Set backlight to bright white
+  lcd.setContrast(0); //Set contrast. Lower to 0 for higher contrast.
 
-//  lcd.clear(); //Clear the display - this moves the cursor to home position as well
-//  lcd.print("Hello");
+  lcd.clear(); //Clear the display - this moves the cursor to home position as well
+  lcd.print("Hello");
 
   therm.read();
 }
@@ -63,41 +63,41 @@ void loop()
   digitalWrite(LED_BUILTIN, HIGH);
     
   // Call therm.read() to read object and ambient temperatures from the sensor.
-//  if (therm.read()) // On success, read() will return 1, on fail 0.
-//  {
+  if (therm.read()) // On success, read() will return 1, on fail 0.
+  {
     // Use the object() and ambient() functions to grab the object and ambient
   // temperatures.
   // They'll be floats, calculated out to the unit you set with setUnit().
-//    Serial.print("Object: " + String(therm.object(), 2));
-//    Serial.println("F");
-//    Serial.print("Ambient: " + String(therm.ambient(), 2));
-//    Serial.println("F");
-//    Serial.println();
+    Serial.print("Object: " + String(therm.object(), 2));
+    Serial.println("F");
+    Serial.print("Ambient: " + String(therm.ambient(), 2));
+    Serial.println("F");
+    Serial.println();
 
   // LCD
   // Set the cursor to column 0, line 1
   // (note: line 1 is the second row, since counting begins with 0):
   
-//  if (therm.object() > 77){
-//    lcd.setFastBacklight(255, 0, 0); //Set backlight to bright white
-//    lcd.setCursor(0, 1);
+  if (therm.object() > 77){
+    lcd.setFastBacklight(255, 0, 0); //Set backlight to bright white
+    lcd.setCursor(0, 1);
     // Print the number of seconds since reset:
-//    lcd.print("Temperature: " + String(therm.object(), 2) + "F");
-//    lcd.setCursor(0,0);
-//    lcd.print("Ambient: " + String(therm.ambient(), 2) + "F");
-//  }
-//  else {
-//    lcd.setFastBacklight(0,255,0);
-//    lcd.setCursor(0, 1);
+    lcd.print("Temperature: " + String(therm.object(), 2) + "F");
+    lcd.setCursor(0,0);
+    lcd.print("Ambient: " + String(therm.ambient(), 2) + "F");
+  }
+  else {
+    lcd.setFastBacklight(0,255,0);
+    lcd.setCursor(0, 1);
      // Print the number of seconds since reset:
-//    lcd.print("Temperature: " + String(therm.object(), 2) + "F");
-//    lcd.setCursor(0,0);
-//    lcd.print("Ambient: " + String(therm.ambient(), 2) + "F");
-//  }
+    lcd.print("Temperature: " + String(therm.object(), 2) + "F");
+    lcd.setCursor(0,0);
+    lcd.print("Ambient: " + String(therm.ambient(), 2) + "F");
+  }
 
 
     
-//  }
+  }
   digitalWrite(LED_BUILTIN, LOW);
   delay(100);
 }

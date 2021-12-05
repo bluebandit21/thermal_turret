@@ -81,10 +81,12 @@ GPIO_TypeDef* VISION_LEFT_BANK = GPIOB;
 GPIO_TypeDef* VISION_RIGHT_BANK = GPIOB;
 GPIO_TypeDef* VISION_UP_BANK = GPIOB;
 GPIO_TypeDef* VISION_DOWN_BANK = GPIOB;
+GPIO_TypeDef* VISION_SEES_FACE_BANK = GPIOC;
 uint16_t VISION_LEFT_PIN = GPIO_PIN_3;
 uint16_t VISION_RIGHT_PIN = GPIO_PIN_4;
 uint16_t VISION_UP_PIN = GPIO_PIN_5;
 uint16_t VISION_DOWN_PIN = GPIO_PIN_10;
+uint16_t VISION_SEES_FACE_PIN = GPIO_PIN_8;
 
 
 
@@ -198,6 +200,7 @@ GPIO_PinState target_left();
 GPIO_PinState target_right();
 GPIO_PinState target_up();
 GPIO_PinState target_down();
+GPIO_PinState sees_face();
 
 GPIO_PinState target_left(){
 	return HAL_GPIO_ReadPin(VISION_LEFT_BANK, VISION_LEFT_PIN);
@@ -210,6 +213,10 @@ GPIO_PinState target_up(){
 }
 GPIO_PinState target_down(){
 	return HAL_GPIO_ReadPin(VISION_DOWN_BANK, VISION_DOWN_PIN);
+}
+
+GPIO_PinState sees_face(){
+	return HAL_GPIO_ReadPin(VISION_SEES_FACE_BANK, VISION_SEES_FACE_PIN);
 }
 
 //-------------------------MISC------------------------------------------------------
@@ -428,34 +435,53 @@ int main(void)
     /* USER CODE BEGIN 3 */
 	  clear_i2c_busy();
 
-	  if(target_left()){
-		  printf("Targeting left\r\n");
-		  if(yaw < SERVO_YAW_MAX_ANGLE){
-			yaw = yaw + 1;
+	  if(sees_face()){
+		  if(target_left()){
+			  printf("Targeting left\r\n");
+			  if(yaw < SERVO_YAW_MAX_ANGLE){
+				yaw = yaw + 1;
+			  }
 		  }
-	  }
-	  if(target_right()){
-		  printf("Targeting right\r\n");
-		  if(yaw > -SERVO_YAW_MAX_ANGLE){
-			  yaw = yaw - 1;
+		  if(target_right()){
+			  printf("Targeting right\r\n");
+			  if(yaw > -SERVO_YAW_MAX_ANGLE){
+				  yaw = yaw - 1;
+			  }
 		  }
-	  }
-	  if(target_up()){
-		  printf("Targeting up\r\n");
-		  if(pitch > SERVO_PITCH_MAX_SAFE_ANGLE_MAX){
-			  pitch = pitch - 1;
+		  if(target_up()){
+			  printf("Targeting up\r\n");
+			  if(pitch > SERVO_PITCH_MAX_SAFE_ANGLE_MAX){
+				  pitch = pitch - 1;
+			  }
 		  }
+		  if(target_down()){
+			  printf("Targeting down\r\n");
+			  if(pitch < SERVO_PITCH_MAX_SAFE_ANGLE_MIN){
+				  pitch = pitch + 1;
+			  }
+		  }
+
+	  	  if(!(target_left() ||target_right() || target_down() || target_up())){
+		  	  printf("Aimed at forehead!\r\n");
+	  	  }
 	  }
-	  if(target_down()){
-		  printf("Targeting down\r\n");
-		  if(pitch < SERVO_PITCH_MAX_SAFE_ANGLE_MIN){
-			  pitch = pitch + 1;
+
+	  if(!sees_face()){
+		  //Head towards origin (slowly lol)
+		  if(pitch > 0){
+			  pitch --;
+		  }
+		  if(pitch < 0){
+			  pitch ++;
+		  }
+		  if(yaw > 0){
+			  yaw --;
+		  }
+		  if(yaw < 0){
+			  yaw ++;
 		  }
 	  }
 
-	  if(!(target_left() ||target_right() || target_down() || target_up())){
-		  printf("Aimed at forehead!\r\n");
-	  }
 
 	  printf("Attempting move to %d,%d\r\n", yaw, pitch);
 	  set_gimbal_angles(yaw, pitch);
@@ -726,12 +752,19 @@ static void MX_GPIO_Init(void)
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();
 
   /*Configure GPIO pins : PB10 PB3 PB4 PB5 */
   GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_3|GPIO_PIN_4|GPIO_PIN_5;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PC8 */
+  GPIO_InitStruct.Pin = GPIO_PIN_8;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
 }
 

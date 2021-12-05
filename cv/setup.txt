@@ -1,2 +1,9 @@
 https://github.com/codeniko/shape_predictor_81_face_landmarks
 https://forums.developer.nvidia.com/t/install-scikit-image/122912/12
+
+
+
+Crontab entry:
+@reboot python3 /home/abdulqader/Documents/eecs373/thermal_turret/cv/Videos/web$
+
+This starts our CV on boot headless

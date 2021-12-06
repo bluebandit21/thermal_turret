@@ -399,13 +399,13 @@ int main(void)
 
   clear_i2c_busy();
 
-  /*
+ /*
   OpenLCD_begin(&hi2c1);
   OpenLCD_setFastBacklightrgb(40,0,255);
   OpenLCD_setContrast(0);
   OpenLCD_setCursor(0, 0);
   OpenLCD_writebuff(":D :D :D :D",11 );
-  */
+*/
 
 
   MLX_IRTherm();
@@ -463,6 +463,27 @@ int main(void)
 
 	  	  if(!(target_left() ||target_right() || target_down() || target_up())){
 		  	  printf("Aimed at forehead!\r\n");
+		  	  // Check the temperature of the person
+		  	  MLX_read();
+		  	  float temp = MLX_object();
+		  	  char buf[100];
+			  gcvt(temp, 8, buf);
+
+		  	  if (temp > 80){
+		  		  OpenLCD_begin(&hi2c1);
+		  		  OpenLCD_setFastBacklightrgb(240, 27, 105);
+		  		  OpenLCD_setContrast(0);
+				  OpenLCD_setCursor(0, 0);
+				  OpenLCD_writebuff(buf, 6);
+
+		  	  }
+		  	  else{
+		  		  OpenLCD_begin(&hi2c1);
+		  		  OpenLCD_setFastBacklightrgb(27, 240, 69);
+		  		  OpenLCD_setContrast(0);
+		  		  OpenLCD_setCursor(0, 0);
+		  		  OpenLCD_writebuff(buf, 6);
+		  	  }
 	  	  }
 	  }
 
@@ -490,15 +511,6 @@ int main(void)
 	  float MLX_object_temp = MLX_object();
 	  float MLX_ambient_temp = MLX_ambient();
 	  printf("MLX Object Temp is %f F\r\n", MLX_object_temp);
-
-
-
-
-
-
-
-
-
 	  printf("Temperature is %f F\r\n", read_temperature_blocking());
 	  HAL_Delay(200);
   }

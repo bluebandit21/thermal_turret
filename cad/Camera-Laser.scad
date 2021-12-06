@@ -130,7 +130,10 @@ translate([0,Mount_Box_LM,5])
 translate([1.5875,Mount_Box_LM - 10.0375,Mount_Box_HM - 4])
 rotate([33.777,0,0])
 	cube($fn = Radius_Fragments, [Mount_Box_LM - 3.175,12,4], 0);
-
+	//Back Support Top angle
+translate([1.5875,Mount_Box_LM - 10.0375,Mount_Box_HM * 2 - 4 + Camera_HM - 5])
+rotate([-33.777,0,0])
+	cube($fn = Radius_Fragments, [Mount_Box_LM - 3.175,12,4], 0);
 
 
 

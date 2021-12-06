@@ -77,10 +77,11 @@ module Laser_Module(box_size, laser_box) {
 				cylinder($fn = Radius_Fragments,Laser_HM, Laser_ODM / 2 + spacer, Laser_ODM / 2 + spacer, 0);
 			// Shelf
 			translate([0,0,(-box_thickness + 6) + (box_thickness - Laser_HM)-4.01])
-			cylinder($fn = Radius_Fragments, box_thickness - back_thickenss - Laser_HM+2.1, Laser_ODM / 2 + spacer, Laser_wireside_IDM / 2 + spacer, 0);
+			cylinder($fn = Radius_Fragments, box_thickness - back_thickenss - Laser_HM+2.1, Laser_ODM / 2 + spacer, Laser_wireside_IDM / 3 + spacer, 0);
 			// Back Hole
 			translate([0,0,-box_thickness + 6])
 				cylinder($fn = Radius_Fragments, back_thickenss, Laser_ODM / 2 + spacer, Laser_ODM / 2 + spacer, 0);
+			// Tab Cut
 			translate([(-Tab_size_M - spacer)/2,-(Laser_ODM / 2) - 1.1 -spacer,2.1])
 				cube($fn = Radius_Fragments, [Tab_size_M + spacer,1.1+spacer,Laser_HM],0);
 		};

@@ -478,11 +478,23 @@ int main(void)
 
 		  	  }
 		  	  else{
+				  //display the high temperature
 		  		  OpenLCD_begin(&hi2c1);
 		  		  OpenLCD_setFastBacklightrgb(27, 240, 69);
 		  		  OpenLCD_setContrast(0);
 		  		  OpenLCD_setCursor(0, 0);
 		  		  OpenLCD_writebuff(buf, 6);
+				  
+				  // then read from touch sensor
+		  		  float touch_temp = read_temperature_blocking;
+		  		  char touch_buf[100];
+		  		  gcvt(touch_temp, 8, touch_buf);
+		  		  OpenLCD_begin(&hi2c1);
+		  		  // display the touch sensor temperature
+				  OpenLCD_setFastBacklightrgb(95,158,160);
+				  OpenLCD_setContrast(0);
+				  OpenLCD_setCursor(0, 0);
+				  OpenLCD_writebuff(touch_buf, 6);
 		  	  }
 	  	  }
 	  }

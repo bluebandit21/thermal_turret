@@ -120,6 +120,10 @@ difference() {
 			cylinder($fn = Radius_Fragments, back_thickenss + 12, Laser_ODM / 2 + spacer, Laser_ODM / 2 + spacer, 0);
 		}
 	}
+	
+	translate ([-0.1,Mount_Box_LM * 5 / 4 - 13.57,Mount_Box_HM * 2 + 10 + Camera_HM])
+	rotate([-33.777,0,0])
+		cube($fn = Radius_Fragments, [Mount_Box_WM + 2, 20, 20], 0);
 }
 	// Back angle
 translate([0,Mount_Box_LM,5])

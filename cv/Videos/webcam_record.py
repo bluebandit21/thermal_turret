@@ -21,7 +21,7 @@ fourcc = cv2.VideoWriter_fourcc(*'XVID')
 
 out = cv2.VideoWriter('output.avi',fourcc, 20.0, (1280, 720))
 
-predictor_path = '/home/abdulqader/Documents/eecs373/thermal_turret/cv/Videos/shape_predictor_81_face_landmarks.dat'
+predictor_path = 'shape_predictor_81_face_landmarks.dat'
 
 detector = dlib.get_frontal_face_detector()
 predictor = dlib.shape_predictor(predictor_path)
@@ -59,47 +59,87 @@ while(cap.isOpened()):
         cv2.rectangle(frame, (math.ceil(frame.shape[1] / 2) - 40, math.ceil(frame.shape[0] / 2) - 40),
                         (math.ceil(frame.shape[1] / 2) + 40, math.ceil(frame.shape[0] / 2) + 40), (255, 0, 0), 3)
 
-
+    i = int(my_dict["19"][0] + ((my_dict["24"][0]-my_dict["19"][0])/2))
+    j = max(my_dict["19"][1],my_dict["24"][1])
+    cv2.circle(frame, (i, j), 3, (255,0,0), -1)
+    forhead={"c":[i,j]}
 
     #4 pins for direction, 21 right, 22 left, 23 up, 24 down   
-
-
-    #19 corresponds to lower-left (from camera pov) 
-    #24 corresponds to lower-right
-    #69 corresponds to upper-left
-    #73 corresponds to upper-right
-    
-    if(len(dets)!=0):
-        #Someone is in the frame
-        GPIO.output(26, True)
+    #Left-Down
+    if (len(dets) == 0):
+        GPIO.output(26,False)
+        print("No Face detected")
     else:
-        GPIO.output(26, False)
-        print("No one is in the frame")
-    if(my_dict["19"][0] > center[0]):
-        #We're to the left of the left
-        GPIO.output(21, True)
-        print("Trying to move RIGHT")
-    else:
-        GPIO.output(21, False)
-    if(my_dict["24"][0] < center[0]):
-        #We're to the right of the right
-        GPIO.output(22, True)
-        print("Trying to move LEFT")
-
-    else:
-        GPIO.output(22, False)
-    if(my_dict["24"][1] < center[1]):
-        #We're below the bottom
-        GPIO.output(23, True)
-        print("Trying to move UP")
-    else:
-        GPIO.output(23, False)
-    if(my_dict["73"][1] >  center[1]):
-        #We're above the top
-        GPIO.output(24, True)
-        print("Trying to move DOWN")
-    else:
+        GPIO.output(26,True)
+    if (my_dict["75"][0] < center[0]) and (my_dict["69"][1] < center[1]) and (my_dict["19"][1] > center[1]) and (my_dict["74"][0] > center[0]):
+        GPIO.output(22,False)
+        GPIO.output(21,False)
         GPIO.output(24,False)
+        GPIO.output(23,False)
+        print("Center")
+    if (my_dict["19"][0] > center[0] and my_dict["19"][1] < center[1]):
+        GPIO.output(22,False)
+        GPIO.output(21,True)
+        GPIO.output(24,False)
+        GPIO.output(23,True)
+        print("RIGHT-UP")
+    #Left-Up
+    elif (my_dict["19"][0] > center[0] and my_dict["19"][1] > center[1]):
+        GPIO.output(22,False)
+        GPIO.output(21,True)
+        GPIO.output(23,False)
+        GPIO.output(24,True)
+        print("RIGHT-DOWN")
+
+    #Right-Down
+    elif (my_dict["24"][0] < center[0] and my_dict["19"][1] < center[1]):
+        GPIO.output(21,False)
+        GPIO.output(22,True)
+        GPIO.output(23,True)
+        GPIO.output(24,False)
+        print("LEFT-UP")
+    #Right-Up
+    elif (my_dict["24"][0] < center[0] and my_dict["19"][1] > center[1]):
+        GPIO.output(21,False)
+        GPIO.output(22,True)
+        GPIO.output(23,False)
+        GPIO.output(24,True)
+        print("LEFT-DOWN")
+
+    #Left
+    elif (my_dict["24"][0] < center[0]):
+        GPIO.output(21,False)
+        GPIO.output(22,True)
+        GPIO.output(23,False)
+        GPIO.output(24,False)
+        print("Left")
+    #Right
+    elif (my_dict["19"][0] > center[0]):
+        GPIO.output(21,True)
+        GPIO.output(22,False)
+        GPIO.output(23,False)
+        GPIO.output(24,False)
+        print("Right")
+    #Down
+    elif (my_dict["19"][1] > center[1]):
+        GPIO.output(21,False)
+        GPIO.output(22,False)
+        GPIO.output(23,False)
+        GPIO.output(24,True)
+        print("Down")
+    #Up
+    elif (my_dict["19"][1] < center[1]):
+        GPIO.output(21,False)
+        GPIO.output(22,False)
+        GPIO.output(23,True)
+        GPIO.output(24,False)
+        print("Up")
+    else:
+        GPIO.output(21,False)
+        GPIO.output(22,False)
+        GPIO.output(23,False)
+        GPIO.output(24,False)
+
 
     out.write(frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):

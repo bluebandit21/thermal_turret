@@ -96,9 +96,7 @@
 #include "stdio.h"
 
 void delay(uint32_t n) {
-	for (int i = 0; i < n*30000; i++){
-		printf("");
-	}
+	HAL_Delay(n);
 }
 
 /*

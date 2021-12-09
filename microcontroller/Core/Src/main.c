@@ -114,6 +114,7 @@ uint16_t VISION_SEES_FACE_PIN = GPIO_PIN_8;
 #define TOUCH_TIMEOUT 100 //TODO: Adjust me
 #define TOUCH_TEMP_SAFE 73.5 //TODO: Adjust me
 #define TOUCH_HOLD_COUNT 100 //TODO: Adjust me
+#define MOVE_SPEED 1
 
 const char* MESSAGE_SEARCHING = "Searching...";
 const char* MESSAGE_MOVE_CLOSER = "Move closer";
@@ -473,25 +474,25 @@ int main(void)
 		  if(target_left()){
 			  printf("Targeting left\r\n");
 			  if(yaw < SERVO_YAW_MAX_ANGLE){
-				yaw = yaw + 1;
+				yaw = yaw + MOVE_SPEED;
 			  }
 		  }
 		  if(target_right()){
 			  printf("Targeting right\r\n");
 			  if(yaw > -SERVO_YAW_MAX_ANGLE){
-				  yaw = yaw - 1;
+				  yaw = yaw - MOVE_SPEED;
 			  }
 		  }
 		  if(target_up()){
 			  printf("Targeting up\r\n");
 			  if(pitch > SERVO_PITCH_MAX_SAFE_ANGLE_MAX){
-				  pitch = pitch - 1;
+				  pitch = pitch - MOVE_SPEED;
 			  }
 		  }
 		  if(target_down()){
 			  printf("Targeting down\r\n");
 			  if(pitch < SERVO_PITCH_MAX_SAFE_ANGLE_MIN){
-				  pitch = pitch + 1;
+				  pitch = pitch + MOVE_SPEED;
 			  }
 		  }
 	  }else{

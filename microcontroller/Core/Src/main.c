@@ -591,7 +591,7 @@ int main(void)
 		  if(touch_temp > TOUCH_TEMP_THRESHOLD){
 			  OpenLCD_setCursor(0, 1);
 			  OpenLCD_writebuff(touch_buf, 6);
-			  if(temp < TOUCH_TEMP_SAFE){
+			  if(touch_temp < TOUCH_TEMP_SAFE){
 			 		//They're considered a safe temperature.
 			 		//Display it, and green
 			 		OpenLCD_setFastBacklightrgb(27, 240, 69);

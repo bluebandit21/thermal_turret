@@ -46,6 +46,21 @@ typedef struct I2C_Module
 
 
 
+enum SYSTEM_STATE{
+	START, /* Nobody centered frame for a while / just powered on. Display
+			* nothing on the display, camera heads to (0,0) or tracks towards forehead if present */
+	CENTERED, /* We just saw a centered forehead in frame. Take the temperature. If it's not high enough,
+	           * tell the user to move closer to the camera on the display */
+	TOUCH_WAIT, /* Tell the user to touch the contact sensor and show yellow, along with temperature reading.
+				 * Wait for them to touch the contact sensor (i.e. contact sensor goes above ambient)
+				 * If they don't after some timeout, move back to RESET*/
+	TOUCHED, /* They just touched the contact sensor. Continue displaying the forehead reading,
+	          * alongside the contact sensor reading below, and green/red for clear / fail. Move back to RESET after a delay.*/
+	PAUSE /* Delay for a brief period of time to let the user see the thing, then go to START*/
+};
+
+
+
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -87,6 +102,19 @@ uint16_t VISION_RIGHT_PIN = GPIO_PIN_4;
 uint16_t VISION_UP_PIN = GPIO_PIN_5;
 uint16_t VISION_DOWN_PIN = GPIO_PIN_10;
 uint16_t VISION_SEES_FACE_PIN = GPIO_PIN_8;
+
+
+
+//---------------------------STATE LOGIC CONSTANTS----------------------
+#define TEMP_SAFE 74.00 //TODO: Adjust me
+#define TEMP_UNSAFE 78.00 //TODO: Adjust me
+#define TEMP_THRESHOLD 72.00 //TODO: Adjust me
+#define RESET_TIMEOUT 20 //TODO: Adjust me
+#define DELAY_TIMEOUT 40 //TODO: Adjust me
+
+const char* MESSAGE_SEARCHING = "Searching...";
+const char* MESSAGE_MOVE_CLOSER = "Move closer";
+const char* MESSAGE_TOUCH = "Touch sensor";
 
 
 
@@ -341,6 +369,14 @@ void clear_i2c_busy(){
 	I2C_ClearBusyFlagErratum(&I2C);
 }
 
+void initialize_lcd(){
+	 OpenLCD_begin(&hi2c1);
+	 OpenLCD_setContrast(0);
+	 OpenLCD_setFastBacklightrgb(128, 128, 128);
+}
+
+
+
 /* USER CODE END 0 */
 
 /**
@@ -396,16 +432,9 @@ int main(void)
 
 
   initialize_gimbal();
+  initialize_lcd();
 
   clear_i2c_busy();
-
- /*
-  OpenLCD_begin(&hi2c1);
-  OpenLCD_setFastBacklightrgb(40,0,255);
-  OpenLCD_setContrast(0);
-  OpenLCD_setCursor(0, 0);
-  OpenLCD_writebuff(":D :D :D :D",11 );
-*/
 
 
   MLX_IRTherm();
@@ -414,26 +443,25 @@ int main(void)
 	  printf("ERROR: MLX90614: MLX_begin(): Not Connected");
   }
   MLX_setUnit(TEMP_F);
-  /*
-   * MLX_IRTherm();
-   * MLX_begin(&hi2c1);
-   * MLX_setUnit(TEMP_F);
-   * MLX_read();
-   * MLX_Object();
-   * MLX_ambient();
-   */
 
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  int yaw,pitch = 0;
+  int yaw = 0;
+  int pitch = 0;
+  long counter = 0;
+
+  enum SYSTEM_STATE state = START;
+
   while (1) {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
 	  clear_i2c_busy();
+
+	  //--------------------------GIMBAL TRACKING LOGIC: ALWAYS RUNS----------------------
 
 	  if(sees_face()){
 		  if(target_left()){
@@ -460,46 +488,7 @@ int main(void)
 				  pitch = pitch + 1;
 			  }
 		  }
-
-	  	  if(!(target_left() ||target_right() || target_down() || target_up())){
-		  	  printf("Aimed at forehead!\r\n");
-		  	  // Check the temperature of the person
-		  	  MLX_read();
-		  	  float temp = MLX_object();
-		  	  char buf[100];
-			  gcvt(temp, 8, buf);
-
-		  	  if (temp > 80){
-		  		  OpenLCD_begin(&hi2c1);
-		  		  OpenLCD_setFastBacklightrgb(240, 27, 105);
-		  		  OpenLCD_setContrast(0);
-				  OpenLCD_setCursor(0, 0);
-				  OpenLCD_writebuff(buf, 6);
-
-		  	  }
-		  	  else{
-				  //display the high temperature
-		  		  OpenLCD_begin(&hi2c1);
-		  		  OpenLCD_setFastBacklightrgb(27, 240, 69);
-		  		  OpenLCD_setContrast(0);
-		  		  OpenLCD_setCursor(0, 0);
-		  		  OpenLCD_writebuff(buf, 6);
-				  
-				  // then read from touch sensor
-		  		  float touch_temp = read_temperature_blocking;
-		  		  char touch_buf[100];
-		  		  gcvt(touch_temp, 8, touch_buf);
-		  		  OpenLCD_begin(&hi2c1);
-		  		  // display the touch sensor temperature
-				  OpenLCD_setFastBacklightrgb(95,158,160);
-				  OpenLCD_setContrast(0);
-				  OpenLCD_setCursor(0, 0);
-				  OpenLCD_writebuff(touch_buf, 6);
-		  	  }
-	  	  }
-	  }
-
-	  if(!sees_face()){
+	  }else{
 		  //Head towards origin (slowly lol)
 		  if(pitch > 0){
 			  pitch --;
@@ -514,17 +503,121 @@ int main(void)
 			  yaw ++;
 		  }
 	  }
-
-
 	  printf("Attempting move to %d,%d\r\n", yaw, pitch);
 	  set_gimbal_angles(yaw, pitch);
+	  //----------------------STATE MACHINE LOGIC--------------------------
+	  switch(state){
+	  case START:
+		  OpenLCD_clear();
+		  OpenLCD_setCursor(0, 0);
+		  OpenLCD_writestr(MESSAGE_SEARCHING);
+		  if(sees_face() && !(target_down()||target_up()||target_left()||target_right())){
+			  //We're centered.
+			  printf("Transitioning state to CENTERED\r\n");
+			  counter = 0; //We just saw someone
+			  state = CENTERED;
+		  }
+		  break;
+	  case CENTERED:
+		  if(!sees_face() || (target_down()||target_up()||target_left()||target_right())){
+			  counter++;
+			  if(counter > RESET_TIMEOUT){
+				  OpenLCD_clear();
+				  state = START;
+			  }
+			  OpenLCD_clear();
+			  OpenLCD_setCursor(0, 0);
+			  OpenLCD_writestr(MESSAGE_SEARCHING);
+			  break; //We're not seeing a face; don't even try to read temp
+		  }else{
+			  counter = 0;
+		  }
+		  //We're actively centered on a face still
+		  //Read the temperature
+		  MLX_read();
+		  float temp = MLX_object();
+		  float ambient = MLX_ambient();
+		  char buf[100];
+		  gcvt(temp, 8, buf);
 
-	  MLX_read();
-	  float MLX_object_temp = MLX_object();
-	  float MLX_ambient_temp = MLX_ambient();
-	  printf("MLX Object Temp is %f F\r\n", MLX_object_temp);
-	  printf("Temperature is %f F\r\n", read_temperature_blocking());
-	  HAL_Delay(200);
+		  if(temp > ambient){
+			  //We're pretty sure we're reading a forehead
+			  //Show the temperature
+			  OpenLCD_clear();
+			  OpenLCD_setCursor(0, 0);
+			  OpenLCD_writebuff(buf, 6);
+			  if(temp < TEMP_SAFE){
+				  //They're considered a safe temperature.
+				  //Display it, and green
+				  OpenLCD_setFastBacklightrgb(27, 240, 69);
+				  state = PAUSE; //Give them some time to see it before clearing.
+			  }else if(temp < TEMP_UNSAFE){
+				  //Threshold temperature.
+				  //Display it, and yellow, alongside instructions to touch contact sensor.
+				  OpenLCD_setFastBacklightrgb(230, 255, 0);
+				  OpenLCD_setCursor(0, 1);
+				  OpenLCD_writestr(MESSAGE_TOUCH);
+				  state = TOUCH_WAIT;
+			  }else{
+				  //Unafe temperature.
+				  //Display it, and red
+				  OpenLCD_setFastBacklightrgb(240, 27, 105);
+				  state = PAUSE;// Give them some time to see it before clearing.
+			  }
+		  }else{
+			  OpenLCD_clear();
+			  OpenLCD_setCursor(0, 0);
+			  OpenLCD_writestr(MESSAGE_MOVE_CLOSER);
+		  }
+
+		  break;
+	  case TOUCH_WAIT:
+		  break;
+	  case TOUCHED:
+		  break;
+	  case PAUSE:
+		  counter++;
+		  if(counter > DELAY_TIMEOUT){
+			  OpenLCD_clear();
+			  OpenLCD_setFastBacklightrgb(128, 128, 128);
+			  state = START;
+		  }
+		  break;
+	  }
+	  /*
+	  	  if(!(target_left() ||target_right() || target_down() || target_up())){
+		  	  printf("Aimed at forehead!\r\n");
+		  	  // Check the temperature of the person
+		  	  MLX_read();
+		  	  float temp = MLX_object();
+		  	  char buf[500];
+			  gcvt(temp, 8, buf);
+
+		  	  if (temp > 80){
+		  		  OpenLCD_setFastBacklightrgb(240, 27, 105);
+				  OpenLCD_setCursor(0, 0);
+				  OpenLCD_writebuff(buf, 6);
+
+		  	  }
+		  	  else{
+				  //display the high temperature
+		  		  OpenLCD_setFastBacklightrgb(27, 240, 69);
+		  		  OpenLCD_setCursor(0, 0);
+		  		  OpenLCD_writebuff(buf, 6);
+				  
+				  // then read from touch sensor
+		  		  float touch_temp = read_temperature_blocking();
+		  		  char touch_buf[500];
+		  		  gcvt(touch_temp, 8, touch_buf);
+		  		  // display the touch sensor temperature
+				  OpenLCD_setFastBacklightrgb(95,158,160);
+				  OpenLCD_setCursor(0, 1);
+				  OpenLCD_writebuff(touch_buf, 6);
+		  	  }
+	  	  }
+
+	  	  */
+	  HAL_Delay(100);
   }
   /* USER CODE END 3 */
 }

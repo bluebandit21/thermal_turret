@@ -113,7 +113,7 @@ uint16_t VISION_SEES_FACE_PIN = GPIO_PIN_8;
 #define TOUCH_TEMP_THRESHOLD 73.0 //TODO: Adjust me
 #define TOUCH_TIMEOUT 100 //TODO: Adjust me
 #define TOUCH_TEMP_SAFE 73.5 //TODO: Adjust me
-#define TOUCH_HOLD_COUNT 30 //TODO: Adjust me
+#define TOUCH_HOLD_COUNT 100 //TODO: Adjust me
 
 const char* MESSAGE_SEARCHING = "Searching...";
 const char* MESSAGE_MOVE_CLOSER = "Move closer";
@@ -210,6 +210,7 @@ void initialize_gimbal(){
  *   it is not made and -1 is returned as an error status.
  */
 int set_gimbal_angles(int yaw, int pitch){
+	pitch-=20;
 	if((yaw > SERVO_YAW_MAX_ANGLE) || (yaw < -SERVO_YAW_MAX_ANGLE)\
 			|| (pitch > SERVO_PITCH_MAX_SAFE_ANGLE_MIN) || (pitch < SERVO_PITCH_MAX_SAFE_ANGLE_MAX)){
 		//Refuse to do this move; it'd cause bad things to occur physically

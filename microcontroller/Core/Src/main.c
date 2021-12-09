@@ -603,6 +603,7 @@ int main(void)
 				  state = PAUSE;// Give them some time to see it before clearing.
 			  }
 		  }else{
+			  OpenLCD_setCursor(0, 1);
 			  OpenLCD_writestr(MESSAGE_TOUCH);
 			  counter++;
 			  if(counter > TOUCH_TIMEOUT){

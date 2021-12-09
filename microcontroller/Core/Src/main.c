@@ -610,6 +610,13 @@ int main(void)
 	  case TOUCH_HOLD:
 		  counter++;
 		  if(counter < TOUCH_HOLD_COUNT) break;
+		  char locked_temp_buf[100];
+		  gcvt(locked_temp, 8, locked_temp_buf);
+
+		  OpenLCD_clear();
+		  OpenLCD_setCursor(0, 0);
+		  OpenLCD_writebuff(locked_temp_buf, 6);
+
 		  OpenLCD_setCursor(0, 1);
 		  OpenLCD_writebuff(touch_buf, 6);
 		  if(touch_temp < TOUCH_TEMP_SAFE){

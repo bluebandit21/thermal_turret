@@ -118,6 +118,7 @@ uint16_t VISION_SEES_FACE_PIN = GPIO_PIN_8;
 const char* MESSAGE_SEARCHING = "Searching...";
 const char* MESSAGE_MOVE_CLOSER = "Move closer";
 const char* MESSAGE_TOUCH = "Touch sensor";
+const char* MESSAGE_HOLD = "Continue hold";
 
 
 
@@ -592,6 +593,8 @@ int main(void)
 		  OpenLCD_writebuff(locked_temp_buf, 6);
 		  if(touch_temp > TOUCH_TEMP_THRESHOLD){
 			  counter = 0;
+			  OpenLCD_setCursor(0, 1);
+			  OpenLCD_writestr(MESSAGE_HOLD);
 			  state = TOUCH_HOLD;
 		  }else{
 			  OpenLCD_setCursor(0, 1);

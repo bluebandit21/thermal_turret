@@ -77,7 +77,7 @@ while(cap.isOpened()):
         GPIO.output(24,False)
         GPIO.output(23,False)
         print("Center")
-    if (my_dict["19"][0] > center[0] and my_dict["19"][1] < center[1]):
+    elif (my_dict["19"][0] > center[0] and my_dict["19"][1] < center[1]):
         GPIO.output(22,False)
         GPIO.output(21,True)
         GPIO.output(24,False)

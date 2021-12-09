@@ -113,6 +113,7 @@ translate([Mount_Box_LM/2,Mount_Box_LM * 5/4 + Mount_Box_LM/4,Mount_Box_HM + 8 +
 rotate([90,-45,0])
 cylinder($fn = 4, Mount_Box_LM/4, (pyramid_Sidelength_M - 10)/2, pyramid_Sidelength_M/2, 0);
 
+
 // cube for cut bottom
 translate([0,Mount_Box_LM * 5/4,Mount_Box_HM + Mount_Box_LM + 3 ])
 cube($fn = Radius_Fragments, [Mount_Box_WM, Mount_Box_HM, 5], 0);
@@ -175,7 +176,7 @@ rotate([33.777,0,0])
 // Laser
 translate([-((Camera_Board_LM + 6) - Mount_Box_WM) / 2,Mount_Box_LM / 2 + 12,Mount_Box_HM * 2 - 4 + Camera_HM])
 rotate([90,0,0])
-	Laser_Module(Camera_Board_LM + 6, 12);
+	Laser_Module(Camera_Board_LM + 6, 12, 24);
 
 // Camera
 // translate([Mount_Box_WM / 2 - (Camera_Board_WM + 6) + (Camera_Board_LM + 12) / 4,Mount_Box_LM / 2 + 12,Mount_Box_HM * 2])

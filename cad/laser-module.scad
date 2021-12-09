@@ -60,27 +60,27 @@ box_size = 25.4; // 12 min // 25.4 - big enough for camera PBC
 laser_box = 12;
 //////////////////////
 
-box_thickness = 24; // 6
+box_thicknesss = 24; // 6
 
-back_thickenss = box_thickness - Laser_HM - 4;
+back_thickness = box_thicknesss - Laser_HM - 4;
 
 // Use module like this
-Laser_Module(box_size, laser_box);
+Laser_Module(box_size, laser_box, box_thickness);
 
-module Laser_Module(box_size, laser_box) {
+module Laser_Module(box_size, laser_box, box_thickness ) {
 //main body
 	difference() {
 		cube($fn = Radius_Fragments, [box_size, laser_box, box_thickness],0);
-		translate([box_size / 2,laser_box / 2,box_thickness - 6.1]) {
+		translate([box_size / 2,laser_box / 2, box_thickness - 6.1]) {
 			// Top Hole
 			translate([0,0,2.1])
 				cylinder($fn = Radius_Fragments,Laser_HM, Laser_ODM / 2 + spacer, Laser_ODM / 2 + spacer, 0);
 			// Shelf
 			translate([0,0,(-box_thickness + 6) + (box_thickness - Laser_HM)-4.01])
-			cylinder($fn = Radius_Fragments, box_thickness - back_thickenss - Laser_HM+2.1, Laser_ODM / 2 + spacer, Laser_wireside_IDM / 3 + spacer, 0);
+			cylinder($fn = Radius_Fragments, box_thickness - back_thickness - Laser_HM+2.1, Laser_ODM / 2 + spacer, Laser_wireside_IDM / 3 + spacer, 0);
 			// Back Hole
 			translate([0,0,-box_thickness + 6])
-				cylinder($fn = Radius_Fragments, back_thickenss, Laser_ODM / 2 + spacer, Laser_ODM / 2 + spacer, 0);
+				cylinder($fn = Radius_Fragments, back_thickness, Laser_ODM / 2 + spacer, Laser_ODM / 2 + spacer, 0);
 			// Tab Cut
 			translate([(-Tab_size_M - spacer)/2,-(Laser_ODM / 2) - 1.1 -spacer,2.1])
 				cube($fn = Radius_Fragments, [Tab_size_M + spacer,1.1+spacer,Laser_HM],0);

@@ -1,0 +1,23 @@
+{
+    "parameterSets": {
+        "design default values": {
+            "Camera_Board_L": "0.95",
+            "Camera_Board_W": "0.982",
+            "Camera_D": "0.55",
+            "Camera_Front2Back": "0.75",
+            "Laser_H": "0.16",
+            "Laser_ID": "0.32",
+            "Laser_OD": "0.362",
+            "Laser_wireside_ID": "0.295",
+            "MM_scalar": "25.4",
+            "Mount_Box_H": "0.3937",
+            "Mount_Box_L": "1.185",
+            "Mount_Box_W": "1.185",
+            "Radius_Fragments": "200",
+            "box_thickness": "24",
+            "laser_box": "12",
+            "spacer": "0.4"
+        }
+    },
+    "fileFormatVersion": "1"
+}

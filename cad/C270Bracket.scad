@@ -32,7 +32,7 @@ module bracket() {
 	hull() {
 		rotate([0,90,0])
 		translate([-width/2,width,0])
-		cylinder(r=width/2, h=width*3);
+		cylinder(r=width/2 -1, h=width*3);
 		translate([width*2/3, width*3, 0])
 		cube([lampWidth, 1, width]);
 	}

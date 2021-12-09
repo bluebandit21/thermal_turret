@@ -54,8 +54,6 @@ enum SYSTEM_STATE{
 	TOUCH_WAIT, /* Tell the user to touch the contact sensor and show yellow, along with temperature reading.
 				 * Wait for them to touch the contact sensor (i.e. contact sensor goes above ambient)
 				 * If they don't after some timeout, move back to RESET*/
-	TOUCHED, /* They just touched the contact sensor. Continue displaying the forehead reading,
-	          * alongside the contact sensor reading below, and green/red for clear / fail. Move back to RESET after a delay.*/
 	PAUSE /* Delay for a brief period of time to let the user see the thing, then go to START*/
 };
 
@@ -106,11 +104,14 @@ uint16_t VISION_SEES_FACE_PIN = GPIO_PIN_8;
 
 
 //---------------------------STATE LOGIC CONSTANTS----------------------
-#define TEMP_SAFE 74.00 //TODO: Adjust me
-#define TEMP_UNSAFE 78.00 //TODO: Adjust me
-#define TEMP_THRESHOLD 72.00 //TODO: Adjust me
+#define TEMP_SAFE 78.00 //TODO: Adjust me
+#define TEMP_UNSAFE 86.00 //TODO: Adjust me
+#define TEMP_THRESHOLD 76.00 //TODO: Adjust me
 #define RESET_TIMEOUT 20 //TODO: Adjust me
 #define DELAY_TIMEOUT 40 //TODO: Adjust me
+#define TOUCH_TEMP_THRESHOLD 73.0 //TODO: Adjust me
+#define TOUCH_TIMEOUT 100 //TODO: Adjust me
+#define TOUCH_TEMP_SAFE 73.5 //TODO: Adjust me
 
 const char* MESSAGE_SEARCHING = "Searching...";
 const char* MESSAGE_MOVE_CLOSER = "Move closer";
@@ -452,6 +453,7 @@ int main(void)
   int yaw = 0;
   int pitch = 0;
   long counter = 0;
+  float locked_temp;
 
   enum SYSTEM_STATE state = START;
 
@@ -540,7 +542,7 @@ int main(void)
 		  char buf[100];
 		  gcvt(temp, 8, buf);
 
-		  if(temp > ambient){
+		  if(temp > TEMP_THRESHOLD){
 			  //We're pretty sure we're reading a forehead
 			  //Show the temperature
 			  OpenLCD_clear();
@@ -557,14 +559,16 @@ int main(void)
 				  OpenLCD_setFastBacklightrgb(230, 255, 0);
 				  OpenLCD_setCursor(0, 1);
 				  OpenLCD_writestr(MESSAGE_TOUCH);
+				  locked_temp = temp;
 				  state = TOUCH_WAIT;
 			  }else{
-				  //Unafe temperature.
+				  //Unsafe temperature.
 				  //Display it, and red
 				  OpenLCD_setFastBacklightrgb(240, 27, 105);
 				  state = PAUSE;// Give them some time to see it before clearing.
 			  }
 		  }else{
+			  printf("Detected temp is %f\r\n", temp);
 			  OpenLCD_clear();
 			  OpenLCD_setCursor(0, 0);
 			  OpenLCD_writestr(MESSAGE_MOVE_CLOSER);
@@ -572,8 +576,41 @@ int main(void)
 
 		  break;
 	  case TOUCH_WAIT:
-		  break;
-	  case TOUCHED:
+		  //The user isn't confirmed safe / unsafe; they're in-between
+		  //Make them use the contact sensor for further evaluation
+		  asm("nop");//Statement required after label.
+		  float touch_temp = read_temperature_blocking();
+		  char touch_buf[500];
+		  gcvt(touch_temp, 8, touch_buf);
+		  char locked_temp_buf[100];
+		  gcvt(locked_temp, 8, locked_temp_buf);
+
+		  OpenLCD_clear();
+		  OpenLCD_setCursor(0, 0);
+		  OpenLCD_writebuff(locked_temp_buf, 6);
+		  if(touch_temp > TOUCH_TEMP_THRESHOLD){
+			  OpenLCD_setCursor(0, 1);
+			  OpenLCD_writebuff(touch_buf, 6);
+			  if(temp < TOUCH_TEMP_SAFE){
+			 		//They're considered a safe temperature.
+			 		//Display it, and green
+			 		OpenLCD_setFastBacklightrgb(27, 240, 69);
+			 		state = PAUSE; //Give them some time to see it before clearing.
+			  }else{
+				  //Unsafe temperature.
+				  //Display it, and red
+				  OpenLCD_setFastBacklightrgb(240, 27, 105);
+				  state = PAUSE;// Give them some time to see it before clearing.
+			  }
+		  }else{
+			  OpenLCD_writestr(MESSAGE_TOUCH);
+			  counter++;
+			  if(counter > TOUCH_TIMEOUT){
+				 OpenLCD_clear();
+				 OpenLCD_setFastBacklightrgb(128, 128, 128);
+				 state = START;
+			  }
+		  }
 		  break;
 	  case PAUSE:
 		  counter++;
@@ -584,39 +621,6 @@ int main(void)
 		  }
 		  break;
 	  }
-	  /*
-	  	  if(!(target_left() ||target_right() || target_down() || target_up())){
-		  	  printf("Aimed at forehead!\r\n");
-		  	  // Check the temperature of the person
-		  	  MLX_read();
-		  	  float temp = MLX_object();
-		  	  char buf[500];
-			  gcvt(temp, 8, buf);
-
-		  	  if (temp > 80){
-		  		  OpenLCD_setFastBacklightrgb(240, 27, 105);
-				  OpenLCD_setCursor(0, 0);
-				  OpenLCD_writebuff(buf, 6);
-
-		  	  }
-		  	  else{
-				  //display the high temperature
-		  		  OpenLCD_setFastBacklightrgb(27, 240, 69);
-		  		  OpenLCD_setCursor(0, 0);
-		  		  OpenLCD_writebuff(buf, 6);
-				  
-				  // then read from touch sensor
-		  		  float touch_temp = read_temperature_blocking();
-		  		  char touch_buf[500];
-		  		  gcvt(touch_temp, 8, touch_buf);
-		  		  // display the touch sensor temperature
-				  OpenLCD_setFastBacklightrgb(95,158,160);
-				  OpenLCD_setCursor(0, 1);
-				  OpenLCD_writebuff(touch_buf, 6);
-		  	  }
-	  	  }
-
-	  	  */
 	  HAL_Delay(100);
   }
   /* USER CODE END 3 */

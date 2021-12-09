@@ -54,6 +54,7 @@ enum SYSTEM_STATE{
 	TOUCH_WAIT, /* Tell the user to touch the contact sensor and show yellow, along with temperature reading.
 				 * Wait for them to touch the contact sensor (i.e. contact sensor goes above ambient)
 				 * If they don't after some timeout, move back to RESET*/
+	TOUCH_HOLD, /* Have them hodl for a while after detecting initial */
 	PAUSE /* Delay for a brief period of time to let the user see the thing, then go to START*/
 };
 
@@ -112,6 +113,7 @@ uint16_t VISION_SEES_FACE_PIN = GPIO_PIN_8;
 #define TOUCH_TEMP_THRESHOLD 73.0 //TODO: Adjust me
 #define TOUCH_TIMEOUT 100 //TODO: Adjust me
 #define TOUCH_TEMP_SAFE 73.5 //TODO: Adjust me
+#define TOUCH_HOLD_COUNT 30 //TODO: Adjust me
 
 const char* MESSAGE_SEARCHING = "Searching...";
 const char* MESSAGE_MOVE_CLOSER = "Move closer";
@@ -589,19 +591,8 @@ int main(void)
 		  OpenLCD_setCursor(0, 0);
 		  OpenLCD_writebuff(locked_temp_buf, 6);
 		  if(touch_temp > TOUCH_TEMP_THRESHOLD){
-			  OpenLCD_setCursor(0, 1);
-			  OpenLCD_writebuff(touch_buf, 6);
-			  if(touch_temp < TOUCH_TEMP_SAFE){
-			 		//They're considered a safe temperature.
-			 		//Display it, and green
-			 		OpenLCD_setFastBacklightrgb(27, 240, 69);
-			 		state = PAUSE; //Give them some time to see it before clearing.
-			  }else{
-				  //Unsafe temperature.
-				  //Display it, and red
-				  OpenLCD_setFastBacklightrgb(240, 27, 105);
-				  state = PAUSE;// Give them some time to see it before clearing.
-			  }
+			  counter = 0;
+			  state = TOUCH_HOLD;
 		  }else{
 			  OpenLCD_setCursor(0, 1);
 			  OpenLCD_writestr(MESSAGE_TOUCH);
@@ -611,6 +602,25 @@ int main(void)
 				 OpenLCD_setFastBacklightrgb(128, 128, 128);
 				 state = START;
 			  }
+		  }
+		  break;
+	  case TOUCH_HOLD:
+		  counter++;
+		  if(counter < TOUCH_HOLD_COUNT) break;
+		  OpenLCD_setCursor(0, 1);
+		  OpenLCD_writebuff(touch_buf, 6);
+		  if(touch_temp < TOUCH_TEMP_SAFE){
+		 		//They're considered a safe temperature.
+		 		//Display it, and green
+		 		OpenLCD_setFastBacklightrgb(27, 240, 69);
+		 		counter = 0;
+		 		state = PAUSE; //Give them some time to see it before clearing.
+		  }else{
+			  //Unsafe temperature.
+			  //Display it, and red
+			  OpenLCD_setFastBacklightrgb(240, 27, 105);
+			  counter = 0;
+			  state = PAUSE;// Give them some time to see it before clearing.
 		  }
 		  break;
 	  case PAUSE:

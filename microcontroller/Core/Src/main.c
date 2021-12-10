@@ -211,7 +211,7 @@ void initialize_gimbal(){
  *   it is not made and -1 is returned as an error status.
  */
 int set_gimbal_angles(int yaw, int pitch){
-	pitch-=20;
+	pitch-=40; //Set neutral up
 	if((yaw > SERVO_YAW_MAX_ANGLE) || (yaw < -SERVO_YAW_MAX_ANGLE)\
 			|| (pitch > SERVO_PITCH_MAX_SAFE_ANGLE_MIN) || (pitch < SERVO_PITCH_MAX_SAFE_ANGLE_MAX)){
 		//Refuse to do this move; it'd cause bad things to occur physically
@@ -620,8 +620,17 @@ int main(void)
 		  OpenLCD_setCursor(0, 0);
 		  OpenLCD_writebuff(locked_temp_buf2, 6);
 
+
+
+
+
+
+		  float touch_temp2 = read_temperature_blocking();
+		  char touch_buf2[500];
+		  gcvt(touch_temp2, 8, touch_buf2);
+
 		  OpenLCD_setCursor(0, 1);
-		  OpenLCD_writebuff(touch_buf, 6);
+		  OpenLCD_writebuff(touch_buf2, 6);
 		  if(touch_temp < TOUCH_TEMP_SAFE){
 		 		//They're considered a safe temperature.
 		 		//Display it, and green
@@ -645,6 +654,15 @@ int main(void)
 		  }
 		  break;
 	  }
+
+
+	  MLX_read();
+	  float temp = MLX_object();
+	  float ambient = MLX_ambient();
+	  char buf[100];
+	  gcvt(temp, 8, buf);
+	  printf("Temp is %f\r\n", temp);
+
 	  HAL_Delay(100);
   }
   /* USER CODE END 3 */

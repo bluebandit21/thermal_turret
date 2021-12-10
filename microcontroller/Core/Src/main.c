@@ -564,6 +564,7 @@ int main(void)
 				  OpenLCD_setFastBacklightrgb(230, 255, 0);
 				  OpenLCD_setCursor(0, 1);
 				  OpenLCD_writestr(MESSAGE_TOUCH);
+				  HAL_Delay(1500);
 				  locked_temp = temp;
 				  state = TOUCH_WAIT;
 			  }else{

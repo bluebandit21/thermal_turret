@@ -7,23 +7,23 @@ v2 - 12/07/2021
 
 
 
-					  _.-''''''-._
-				  _.-'			  '-.
-				.'				  _  '-
-			   /				-' '-_ '_
-			  /			        \     '8888     
-			 /					 \    888888
-			/					  \    8888
-		   /					   \	
-		  /						    \
-		 /						     \  
-		/						      \  
-   ____/__  ______  ______  ______  ___\___
-  /       \/      \/      \/      \/       \
- /										    \
-|										     |
- \										    /
-  \										   /
+                       _.-''''''-._
+                   _.-'            '-.
+                 .'                _  '-
+                /                -' '-_ '_
+               /                 \     '8888
+              /                   \    888888
+             /                     \    8888
+            /                       \
+           /                         \
+          /                           \
+         /                             \
+    ____/__  ______  ______  ______  ___\___
+  /       \/      \/      \/      \/        \
+ /                                           \
+|                                            |
+ \                                          /
+  \                                        /
    \______/\______/\______/\______/\______/
 
 
@@ -62,7 +62,7 @@ Camera_Board_L = 0.950; // inches <-- has 0.630 ribbon coming out of bottom cent
 Camera_D = 0.550; // inches
 
 // Logitech C310
-Camera_H = 1 + (7/32);
+Camera_H = 1 + (7 / 32);
 Camera_Front2Back = 0.75;
 
 ////////////////////////////////////////////////////////////////////////////
@@ -138,23 +138,23 @@ difference() {
 	union() {
 	translate ([0,Mount_Box_LM * 5 / 4 - 11.57,Mount_Box_HM + 5])
 		cube($fn = Radius_Fragments, [Mount_Box_WM,11.57,44],0);
-		
+
 	}
-	
+
 	// Hole for Laser wires
 	translate([-((Camera_Board_LM + 10) - Mount_Box_WM) / 2,Mount_Box_LM / 2 + 12,Mount_Box_HM * 2 - 4 + Camera_HM])
-	rotate([90,0,0]){	
+	rotate([90,0,0]){
 		translate([box_size / 2,laser_box / 2,box_thickness - 6.1]) {
 			translate([0,0,-box_thickness -6])
 			cylinder($fn = Radius_Fragments, back_thickenss + 12, Laser_ODM / 2 + spacer, Laser_ODM / 2 + spacer, 0);
 		}
 	}
-	
+
 	// Top angle aesthetic cut
 	translate ([-0.1,Mount_Box_LM * 5 / 4 - 13.57,Mount_Box_HM * 2 + 10 + Camera_HM])
 	rotate([-33.777,0,0])
 		cube($fn = Radius_Fragments, [Mount_Box_WM + 2, 20, 20], 0);
-		
+
 	// cylinder cut for camera
 	translate([bracket_centered_M  + camera_offset_M + 7,      Camera_Front2Back_M + 7,         Mount_Box_HM * 2 - 4+ (Camera_HM / 2)])
 	rotate([0,90,0])
@@ -189,13 +189,9 @@ camera_offset_M = 13/32 * MM_scalar;
 difference() {
 	translate([bracket_centered_M  + camera_offset_M,   Camera_Front2Back_M,   Mount_Box_HM * 2 - 4+ (Camera_HM / 2)  - 7/2])
 	bracket();
-	
+
 	// cylinder cut for camera
 	translate([bracket_centered_M  + camera_offset_M + 7,      Camera_Front2Back_M + 7,         Mount_Box_HM * 2 - 4+ (Camera_HM / 2)])
 	rotate([0,90,0])
 	cylinder($fn = Radius_Fragments, r=7/2, h=7);
 }
-
-
-
-

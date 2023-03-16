@@ -8,7 +8,7 @@ All links to important documentation are located in [development-references](/do
 
 A more  thorough wiring sheet with descriptions and pins can be found in the [wiring](/docs/wiring.md) page
 
-[image unavailable](/docs/img/hardware-diagram.png)
+![image unavailable](/docs/img/hardware-diagram.png)
 
 ## Components and Codebase
 
@@ -30,4 +30,4 @@ There is a serial LCD with RGB backlight linked with the project to display the 
 
 ## Basic Code Flow
 
-[image unavailable](/docs/img/code-flowchart.png)
+![image unavailable](/docs/img/code-flowchart.png)
